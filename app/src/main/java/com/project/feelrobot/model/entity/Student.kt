@@ -1,4 +1,4 @@
-package com.project.feelrobot.model
+package com.project.feelrobot.model.entity
 
 data class Student(
     override val id: String,
