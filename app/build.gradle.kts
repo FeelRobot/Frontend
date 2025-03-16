@@ -10,10 +10,17 @@ android {
     namespace = "com.project.feelrobot"
     compileSdk = 35
 
-    val localPropertiesFile = rootProject.file("local.properties")
+    val envFile = rootProject.file(".env")
+    val props = Properties()
     var apiBaseUrl: String = "http://10.0.2.2:8080/" // 기본값
 
-    // 시스템 환경변수 API_BASE_URL 우선 적용 (릴리스 빌드 시 사용)
+    // .env 파일이 존재하면 환경 변수 로드
+    if (envFile.exists()) {
+        props.load(envFile.inputStream())
+        apiBaseUrl = props.getProperty("API_BASE_URL", apiBaseUrl)
+    }
+
+    // 시스템 환경변수 API_BASE_URL 우선 적용
     if (project.hasProperty("API_BASE_URL")) {
         apiBaseUrl = project.property("API_BASE_URL") as String
     }
@@ -26,8 +33,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
-    }
+
+        // API_BASE_URL을 모든 빌드 타입에서 동일하게 사용
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")    }
 
     buildFeatures {
         buildConfig = true // BuildConfig 기능 활성화
@@ -35,30 +43,18 @@ android {
 
     buildTypes {
         debug {
-            // 에뮬레이터 -> 로컬 서버
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"") // 로컬 서버
+            // 기본적으로 .env에서 설정한 API_BASE_URL 사용
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         }
 
         release {
-            // 1) .env 파일 로드
-            val envFile = rootProject.file(".env")
-            val props = Properties()
-
-            if (envFile.exists()) {
-                props.load(envFile.inputStream())
-            }
-
-            // 2) .env 에서 실제 서버 주소 가져오기
-            val releaseServerUrl = props.getProperty("RELEASE_SERVER_URL", "https://default-server.com/")
-
-            // 3) release 빌드에 실제 서버 주소 주입
-            buildConfigField("String", "API_BASE_URL", "\"$releaseServerUrl\"")
-
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 기본적으로 .env에서 설정한 API_BASE_URL 사용
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         }
     }
     compileOptions {

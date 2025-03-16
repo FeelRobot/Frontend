@@ -63,7 +63,7 @@ fun MainScreen(
             Sidebar(navController = navController, drawerState = drawerState) // 사이드바 composable
         }) {
         Scaffold(topBar = {
-            TopAppBar(title = { Text("AjouNotice") }, // App Bar 제목 설정
+            TopAppBar(title = { Text("FeelRobot") }, // App Bar 제목 설정
                 navigationIcon = {
                     IconButton(onClick = {
                         scope.launch {
