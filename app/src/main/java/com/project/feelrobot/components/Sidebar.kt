@@ -96,6 +96,9 @@ fun Sidebar(navController: NavController, drawerState: DrawerState) {
             SidebarButton("내 정보", navController, "myPage", drawerState, scope){
                 Icon(Icons.Default.Person, contentDescription = "My page")
             }
+            SidebarButton("회원가입", navController, "signup", drawerState, scope) {
+
+            }
         }
     }
 }
