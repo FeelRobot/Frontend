@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.project.feelrobot.R
+import com.project.feelrobot.components.TextFieldRow
 
 @Composable
 fun SignupScreen() {
@@ -109,58 +110,14 @@ fun SignupScreen() {
 @Composable
 fun SignupForm() {
     Column(modifier = Modifier.fillMaxWidth(0.85f)) {
-        SignupTextField(label = "아이디", value = "아이디를 입력하세요.")
-        SignupTextField(label = "이름", value = "이름을 입력하세요.")
-        SignupTextField(label = "비밀번호", value = "비밀번호를 입력하세요.", isPassword = true)
-        SignupTextField(label = "비밀번호 재입력", value = "비밀번호를 다시 한번 입력하세요.", isPassword = true)
-        SignupTextField(label = "이메일", value = "이메일을 입력하세요.")
+        TextFieldRow(label = "아이디", value = "아이디를 입력하세요.")
+        TextFieldRow(label = "이름", value = "이름을 입력하세요.")
+        TextFieldRow(label = "비밀번호", value = "비밀번호를 입력하세요.", isPassword = true)
+        TextFieldRow(label = "비밀번호 재입력", value = "비밀번호를 다시 한번 입력하세요.", isPassword = true)
+        TextFieldRow(label = "이메일", value = "이메일을 입력하세요.")
     }
 }
 
-@Composable
-fun SignupTextField(label: String, value: String, isPassword: Boolean = false) {
-    var text by remember { mutableStateOf("") }
-    var isUserInput by remember { mutableStateOf(false) } // 사용자가 입력했는지 여부
-
-    Column {
-        // 라벨
-        Text(text = label, fontSize = 14.sp, color = Color.Black)
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp) // 내부 패딩 조정
-                .height(24.dp), contentAlignment = Alignment.CenterStart // 플레이스홀더 및 입력 텍스트 정렬
-
-        ) {
-            // 플레이스홀더 텍스트 (입력하기 전 회색 안내 문구)
-            if (!isUserInput) {
-                Text(
-                    text = value, // 기본값을 안내 문구로 사용
-                    fontSize = 14.sp, color = Color.Gray
-                )
-            }
-
-            // 실제 입력 필드
-            BasicTextField(
-                value = text,
-                onValueChange = {
-                    text = it
-                    isUserInput = text.isNotEmpty() // 입력 여부 확인
-                },
-                visualTransformation = if (isPassword && isUserInput) PasswordVisualTransformation() else VisualTransformation.None,
-                textStyle = androidx.compose.ui.text.TextStyle(
-                    color = Color.Black, // 입력하면 항상 검은색으로
-                    fontSize = 14.sp
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-    }
-}
 @Composable
 fun UserTypeSelector(selectedUserType: String, onUserTypeSelected: (String) -> Unit) {
     val userTypes = listOf("학생", "보호자")
