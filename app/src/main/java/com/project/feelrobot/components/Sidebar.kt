@@ -55,7 +55,7 @@ fun SidebarButton(
         }, modifier = Modifier
             .fillMaxWidth() // 버튼이 사이드바의 가로를 완전히 채우도록 설정
             .height(48.dp) // 버튼의 높이를 고정하여 균일한 크기 유지
-            .shadow(6.dp), // 🔥 그림자 추가
+            .shadow(6.dp), // 그림자 추가
         shape = Shapes().small.copy(CornerSize(0.dp)) // 버튼 모서리를 직각으로 설정
     ) {
         Row(
