@@ -99,6 +99,9 @@ fun Sidebar(navController: NavController, drawerState: DrawerState) {
             SidebarButton("회원가입", navController, "signup", drawerState, scope) {
 
             }
+            SidebarButton("로그인", navController, "login", drawerState, scope) {
+
+            }
         }
     }
 }
