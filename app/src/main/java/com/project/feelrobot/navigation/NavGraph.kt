@@ -27,7 +27,7 @@ fun NavGraph(
         composable("chat") { ChatScreen() }
 
         // 로그인 관련 페이지
-        composable("login") { LoginScreen() }
+        composable("login") { LoginScreen(navController) }
         composable("signup") { SignupScreen() }
 
     }
