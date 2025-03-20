@@ -106,11 +106,17 @@ fun SignupScreen() {
 @Composable
 fun SignupForm() {
     Column(modifier = Modifier.fillMaxWidth(0.85f)) {
-        TextFieldRow(label = "아이디", value = "아이디를 입력하세요.")
+        TextFieldRow(label = "아이디",
+            value = "아이디를 입력하세요.",
+            buttonText = "중복 확인",
+            onButtonClick = { TODO("아이디 중복 확인 로직 추가") })
         TextFieldRow(label = "이름", value = "이름을 입력하세요.")
         TextFieldRow(label = "비밀번호", value = "비밀번호를 입력하세요.", isPassword = true)
         TextFieldRow(label = "비밀번호 재입력", value = "비밀번호를 다시 한번 입력하세요.", isPassword = true)
-        TextFieldRow(label = "이메일", value = "이메일을 입력하세요.")
+        TextFieldRow(label = "이메일",
+            value = "이메일을 입력하세요.",
+            buttonText = "인증하기",
+            onButtonClick = { TODO("이메일 인증 로직 추가") })
     }
 }
 
