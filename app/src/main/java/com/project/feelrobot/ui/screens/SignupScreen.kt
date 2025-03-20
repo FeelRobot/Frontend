@@ -3,7 +3,6 @@ package com.project.feelrobot.ui.screens
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -33,9 +35,15 @@ import com.project.feelrobot.R
 
 @Composable
 fun SignupScreen() {
+    val scrollState = rememberScrollState()
+
     Column(
-        modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         // 상단 이미지 배치
         Box(modifier = Modifier.fillMaxWidth()) {
             Image(
@@ -54,13 +62,19 @@ fun SignupScreen() {
         // 회원가입 텍스트
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "‘필로봇’ 에 오신 걸", fontSize = 24.sp, color = Color.Black
+                text = "‘필로봇’ 에 오신 걸",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
             )
             Text(
-                text = "환영합니다!", fontSize = 24.sp, color = Color.Black
+                text = "환영합니다!", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black
             )
             Text(
-                text = "당신을 설명해주세요!", fontSize = 16.sp, color = Color.Gray
+                text = "당신을 설명해주세요!",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray
             )
         }
 
@@ -108,14 +122,15 @@ fun SignupTextField(label: String, value: String, isPassword: Boolean = false) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(8.dp))
-                .padding(12.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp) // 내부 패딩 조정
+                .height(24.dp), contentAlignment = Alignment.CenterStart // 플레이스홀더 및 입력 텍스트 정렬
+
         ) {
             // 플레이스홀더 텍스트 (입력하기 전 회색 안내 문구)
             if (!isUserInput) {
                 Text(
                     text = value, // 기본값을 안내 문구로 사용
-                    fontSize = 16.sp,
-                    color = Color.Gray
+                    fontSize = 14.sp, color = Color.Gray
                 )
             }
 
@@ -128,8 +143,8 @@ fun SignupTextField(label: String, value: String, isPassword: Boolean = false) {
                 },
                 visualTransformation = if (isPassword && isUserInput) PasswordVisualTransformation() else VisualTransformation.None,
                 textStyle = androidx.compose.ui.text.TextStyle(
-                    color = Color.Black, // 입력하면 항상 검은색으로 표시
-                    fontSize = 16.sp
+                    color = Color.Black, // 입력하면 항상 검은색으로
+                    fontSize = 14.sp
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
