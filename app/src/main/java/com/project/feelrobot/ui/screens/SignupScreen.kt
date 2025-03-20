@@ -2,7 +2,6 @@ package com.project.feelrobot.ui.screens
 
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.RadioButton
@@ -32,8 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.project.feelrobot.R
@@ -122,12 +118,10 @@ fun SignupForm() {
 fun UserTypeSelector(selectedUserType: String, onUserTypeSelected: (String) -> Unit) {
     val userTypes = listOf("학생", "보호자")
     Row(
-        modifier = Modifier.fillMaxWidth(0.85f),
-        horizontalArrangement = Arrangement.Center
+        modifier = Modifier.fillMaxWidth(0.85f), horizontalArrangement = Arrangement.Center
     ) {
         userTypes.forEach { userType ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
                     .clickable { onUserTypeSelected(userType) } // 선택 시 변경
@@ -135,7 +129,7 @@ fun UserTypeSelector(selectedUserType: String, onUserTypeSelected: (String) -> U
                 RadioButton(
                     selected = (selectedUserType == userType),
                     onClick = { onUserTypeSelected(userType) },
-                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF1A237E)) // 선택된 색상 (남색 계열)
+                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF1A237E))
                 )
                 Text(
                     text = userType,
