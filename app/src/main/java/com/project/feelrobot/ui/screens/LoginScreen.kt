@@ -2,6 +2,7 @@ package com.project.feelrobot.ui.screens
 
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -164,6 +168,28 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = v
                         .clickable { navController.navigate("signup") }
                         .padding(horizontal = 8.dp))
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 소셜 로그인 버튼 (카카오, 구글)
+            Row(
+                modifier = Modifier.fillMaxWidth(0.85f),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center
+            ) {
+                SocialLoginButton(
+                    navController = navController,
+                    route = "kakaoLogin",
+                    iconResId = R.drawable.kakaotalk_icon
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+
+                SocialLoginButton(
+                    navController = navController,
+                    route = "googleLogin",
+                    iconResId = R.drawable.google_icon,
+                    isGoogle = true
+                )
+            }
         }
     }
 }
@@ -191,3 +217,29 @@ fun LoginForm(
         )
     }
 }
+
+@Composable
+fun SocialLoginButton(
+    navController: NavController, // 네비게이션 컨트롤러
+    route: String, // 이동할 네비게이션 경로
+    iconResId: Int, // 아이콘 리소스 ID
+    isGoogle: Boolean = false // 구글 버튼 여부 추가
+) {
+    Box(contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(50.dp) // 카카오 & 구글 버튼 크기 동일하게 50dp로 설정
+            .then(
+                if (isGoogle) Modifier.background(
+                    Color.White, shape = CircleShape
+                ) else Modifier
+            ) // 구글 버튼만 흰색 원 배경 추가
+            .clickable { navController.navigate(route) }) {
+        Image(
+            painter = painterResource(id = iconResId),
+            contentDescription = "Social Login Button",
+            modifier = Modifier.size(if (isGoogle) 30.dp else 50.dp), // 구글 30dp, 카카오 50dp
+            contentScale = ContentScale.Fit
+        )
+    }
+}
+
