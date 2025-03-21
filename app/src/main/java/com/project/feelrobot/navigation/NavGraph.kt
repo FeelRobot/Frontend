@@ -8,7 +8,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.project.feelrobot.ui.screens.ChatScreen
+import com.project.feelrobot.ui.screens.GoogleLoginScreen
 import com.project.feelrobot.ui.screens.HomeScreen
+import com.project.feelrobot.ui.screens.KakaoLoginScreen
 import com.project.feelrobot.ui.screens.LoginScreen
 import com.project.feelrobot.ui.screens.MyPageScreen
 import com.project.feelrobot.ui.screens.SignupScreen
@@ -29,6 +31,8 @@ fun NavGraph(
         // 로그인 관련 페이지
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignupScreen() }
+        composable("kakaoLogin") { KakaoLoginScreen() }
+        composable("googleLogin") { GoogleLoginScreen() }
 
     }
 }
