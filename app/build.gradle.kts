@@ -97,5 +97,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor) // 네트워크 로그 확인을 위한 Interceptor
 
+    // data store
+    implementation(libs.androidx.datastore.preferences)
 
 }
