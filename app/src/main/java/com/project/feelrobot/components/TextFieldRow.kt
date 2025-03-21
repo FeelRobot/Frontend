@@ -15,10 +15,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,17 +25,16 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun TextFieldRow(
-    label: String? = null,
-    value: String,
-    isPassword: Boolean = false,
-    modifiable: Boolean = true,
-    fontColor: Color = Color.Black,
+    label: String? = null, // id, password 등 label
+    value: String, // 입력값
+    placeholder: String, // 기본값 (플레이스홀더)
+    onValueChange: (String) -> Unit, // 외부에서 상태 관리 가능하도록 추가
+    isPassword: Boolean = false, // 비밀번호 입력 여부
+    modifiable: Boolean = true, // 수정 가능 여부
+    fontColor: Color = Color.Black, // 입력 폰트 색상
     buttonText: String? = null, // 버튼 텍스트 (null이면 버튼 없음)
     onButtonClick: (() -> Unit)? = null // 버튼 클릭 이벤트
 ) {
-    var text by remember { mutableStateOf("") }
-    var isUserInput by remember { mutableStateOf(false) } // 사용자가 입력했는지 여부
-
     Column(modifier = Modifier.fillMaxWidth()) {
 
         Row(
@@ -69,25 +64,21 @@ fun TextFieldRow(
 
                 ) {
                     // 플레이스홀더 텍스트 (입력하기 전 회색 안내 문구)
-                    if (!isUserInput) {
+                    if (value.isEmpty()) {
                         Text(
-                            text = value, // 기본값을 안내 문구로 사용
+                            text = placeholder, // 기본값을 안내 문구로 사용
                             fontSize = 14.sp, color = Color.Gray
                         )
                     }
 
                     // 실제 입력 필드
                     BasicTextField(
-                        value = text,
-                        onValueChange = {
-                            text = it
-                            isUserInput = text.isNotEmpty() // 입력 여부 확인
-                        },
+                        value = value,
+                        onValueChange = { onValueChange(it) }, // 부모에서 관리하는 값 업데이트
                         enabled = modifiable,
-                        visualTransformation = if (isPassword && isUserInput) PasswordVisualTransformation() else VisualTransformation.None,
+                        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
                         textStyle = androidx.compose.ui.text.TextStyle(
-                            color = fontColor,
-                            fontSize = 14.sp
+                            color = fontColor, fontSize = 14.sp
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
