@@ -1,6 +1,7 @@
 package com.project.feelrobot.ui.screens
 
 //noinspection UsingMaterialAndMaterial3Libraries
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,16 +30,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.project.feelrobot.R
 import com.project.feelrobot.components.TextFieldRow
+import com.project.feelrobot.model.dto.RegisterDto
+import com.project.feelrobot.viewmodel.SignupViewModel
 
 @Composable
-fun SignupScreen() {
-    var selectedUserType by remember { mutableStateOf("학생") }
+fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel = viewModel()) {
+    val context = LocalContext.current  // 여기서 context를 가져옴
+
+    var id by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+
+    var selectedUserType by remember { mutableIntStateOf(0) } // 0: 학생, 1: 보호자
     val scrollState = rememberScrollState()
 
     Column(
@@ -84,7 +99,16 @@ fun SignupScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         // 입력 필드 폼
-        SignupForm()
+        SignupForm(id = id,
+            name = name,
+            password = password,
+            confirmPassword = confirmPassword,
+            email = email,
+            onIdChange = { id = it },
+            onNameChange = { name = it },
+            onPasswordChange = { password = it },
+            onConfirmPasswordChange = { confirmPassword = it },
+            onEmailChange = { email = it })
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -92,7 +116,17 @@ fun SignupScreen() {
 
         // 제출 버튼
         Button(
-            onClick = { TODO("회원가입 처리") },
+            onClick = {
+                if (password != confirmPassword) {
+                    Toast.makeText(context, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
+                } else {
+                    signupViewModel.registerUser(
+                        RegisterDto(id, name, password, email, selectedUserType), context
+                    ) {
+                        navController.navigate("login") { popUpTo("signup") { inclusive = true } }
+                    }
+                }
+            },
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .fillMaxWidth(0.85f)
@@ -104,41 +138,73 @@ fun SignupScreen() {
 }
 
 @Composable
-fun SignupForm() {
+fun SignupForm(
+    id: String,
+    name: String,
+    password: String,
+    confirmPassword: String,
+    email: String,
+    onIdChange: (String) -> Unit,
+    onNameChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit
+) {
+
     Column(modifier = Modifier.fillMaxWidth(0.85f)) {
         TextFieldRow(label = "아이디",
-            value = "아이디를 입력하세요.",
+            value = id,
+            placeholder = "아이디를 입력하세요.",
+            onValueChange = onIdChange,
             buttonText = "중복 확인",
             onButtonClick = { TODO("아이디 중복 확인 로직 추가") })
-        TextFieldRow(label = "이름", value = "이름을 입력하세요.")
-        TextFieldRow(label = "비밀번호", value = "비밀번호를 입력하세요.", isPassword = true)
-        TextFieldRow(label = "비밀번호 재입력", value = "비밀번호를 다시 한번 입력하세요.", isPassword = true)
+
+        TextFieldRow(
+            label = "이름", value = name, placeholder = "이름을 입력하세요.", onValueChange = onNameChange
+        )
+
+        TextFieldRow(
+            label = "비밀번호",
+            value = password,
+            placeholder = "비밀번호를 입력하세요.",
+            onValueChange = onPasswordChange,
+            isPassword = true
+        )
+        TextFieldRow(
+            label = "비밀번호 재입력",
+            value = confirmPassword,
+            placeholder = "비밀번호를 다시 한번 입력하세요.",
+            onValueChange = onConfirmPasswordChange,
+            isPassword = true
+        )
         TextFieldRow(label = "이메일",
-            value = "이메일을 입력하세요.",
+            value = email,
+            placeholder = "이메일을 입력하세요.",
             buttonText = "인증하기",
+            onValueChange = onEmailChange,
             onButtonClick = { TODO("이메일 인증 로직 추가") })
     }
 }
 
 @Composable
-fun UserTypeSelector(selectedUserType: String, onUserTypeSelected: (String) -> Unit) {
-    val userTypes = listOf("학생", "보호자")
+fun UserTypeSelector(selectedUserType: Int, onUserTypeSelected: (Int) -> Unit) {
+    val userTypes = mapOf(0 to "학생", 1 to "보호자") // 0: 학생, 1: 보호자
     Row(
         modifier = Modifier.fillMaxWidth(0.85f), horizontalArrangement = Arrangement.Center
     ) {
-        userTypes.forEach { userType ->
+        userTypes.forEach { (type, label) ->
             Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
-                    .clickable { onUserTypeSelected(userType) } // 선택 시 변경
+                    .clickable { onUserTypeSelected(type) } // 선택 시 변경
             ) {
                 RadioButton(
-                    selected = (selectedUserType == userType),
-                    onClick = { onUserTypeSelected(userType) },
+                    selected = (selectedUserType == type),
+                    onClick = { onUserTypeSelected(type) },
                     colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF1A237E))
                 )
                 Text(
-                    text = userType,
+                    text = label,
                     fontSize = 16.sp,
                     color = Color.Black,
                     modifier = Modifier.padding(start = 4.dp)
