@@ -111,7 +111,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = v
                 Checkbox(
                     checked = isAutoLogin, onCheckedChange = { isAutoLogin = it }, // 상태 업데이트
                     colors = androidx.compose.material3.CheckboxDefaults.colors(
-                        checkedColor = Color(0xFF1A237E)
+                        checkedColor = Color(0xFF10298F)
                     )
                 )
                 Text(

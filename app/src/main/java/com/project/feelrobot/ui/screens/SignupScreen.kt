@@ -201,7 +201,7 @@ fun UserTypeSelector(selectedUserType: Int, onUserTypeSelected: (Int) -> Unit) {
                 RadioButton(
                     selected = (selectedUserType == type),
                     onClick = { onUserTypeSelected(type) },
-                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF1A237E))
+                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF10298F))
                 )
                 Text(
                     text = label,
