@@ -16,24 +16,54 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.project.feelrobot.R
 import com.project.feelrobot.components.TextFieldRow
+import com.project.feelrobot.storage.JwtTokenManager
+import com.project.feelrobot.viewmodel.LoginViewModel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = viewModel()) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    var id by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var isAutoLogin by remember { mutableStateOf(false) } // 자동 로그인 체크박스 상태
+
+    // 저장된 자동 로그인 정보 불러오기
+    LaunchedEffect(Unit) {
+        val tokenManager = JwtTokenManager(context)
+        tokenManager.isAutoLoginFlow.collectLatest { savedAutoLogin ->
+            isAutoLogin = savedAutoLogin
+            if (isAutoLogin) {
+                tokenManager.accessTokenFlow.collectLatest { token ->
+                    if (!token.isNullOrEmpty()) {
+                        println("자동 로그인: 토큰이 존재하여 로그인 유지")
+                        // 자동 로그인 처리: 토큰이 유효하면 홈 화면으로 이동
+                        navController.navigate("home") { popUpTo("login") { inclusive = true } }
+                    }
+                }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -64,7 +94,10 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(100.dp))
 
             // 로그인 입력폼
-            LoginForm()
+            LoginForm(id = id,
+                password = password,
+                onIdChange = { id = it },
+                onPasswordChange = { password = it })
 
             // 자동 로그인 체크박스 추가
             Row(
@@ -89,7 +122,11 @@ fun LoginScreen(navController: NavController) {
 
             // 로그인 버튼
             Button(
-                onClick = { TODO("로그인 처리") },
+                onClick = {
+                    coroutineScope.launch {
+                        loginViewModel.login(id, password, isAutoLogin, context, navController)
+                    }
+                },
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
@@ -132,9 +169,25 @@ fun LoginScreen(navController: NavController) {
 }
 
 @Composable
-fun LoginForm() {
+fun LoginForm(
+    id: String, password: String, onIdChange: (String) -> Unit, onPasswordChange: (String) -> Unit
+) {
     Column(modifier = Modifier.fillMaxWidth(0.85f)) {
-        TextFieldRow(value = "아이디를 입력하세요.", fontColor = Color.White)
-        TextFieldRow(value = "비밀번호를 입력하세요.", fontColor = Color.White, isPassword = true)
+        TextFieldRow(
+            label = "아이디",
+            value = id,
+            placeholder = "아이디를 입력하세요.",
+            onValueChange = onIdChange,
+            fontColor = Color.White
+        )
+
+        TextFieldRow(
+            label = "비밀번호",
+            value = password,
+            placeholder = "비밀번호를 입력하세요.",
+            onValueChange = onPasswordChange,
+            isPassword = true,
+            fontColor = Color.White
+        )
     }
 }

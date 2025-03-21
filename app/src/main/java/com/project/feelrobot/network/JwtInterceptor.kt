@@ -12,13 +12,17 @@ class JwtInterceptor(private val context: Context) : Interceptor {
     @SuppressLint("SuspiciousIndentation")
     override fun intercept(chain: Interceptor.Chain): Response {
         val token = runBlocking {
-            JwtTokenManager(context).accessTokenFlow.first()
+            try {
+                JwtTokenManager(context).accessTokenFlow.first()
+            } catch (e: Exception) {
+                null
+            }
         }
 
         val request = chain.request().newBuilder()
-            token?.let {
-                request.addHeader("Authorization", "Bearer $it") // JWT 포함
-            }
+        token?.let {
+            request.addHeader("Authorization", "Bearer $it") // JWT 포함
+        }
 
         return chain.proceed(request.build())
     }
