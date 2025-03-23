@@ -92,7 +92,10 @@ fun TextFieldRow(
                         modifier = Modifier
                             .height(36.dp)
                             .wrapContentWidth(),
-                        contentPadding = PaddingValues(0.dp)
+                        contentPadding = PaddingValues(0.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF10298F) // 버튼 색상 적용
+                        )
                     ) {
                         Text(
                             text = it, fontSize = 14.sp, modifier = Modifier.padding(8.dp)

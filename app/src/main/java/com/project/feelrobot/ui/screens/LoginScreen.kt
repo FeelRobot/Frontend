@@ -134,7 +134,10 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = v
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
-                    .height(50.dp)
+                    .height(50.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF10298F) // 버튼 색상 적용
+                )
             ) {
                 Text(text = "로그인", fontSize = 18.sp)
             }

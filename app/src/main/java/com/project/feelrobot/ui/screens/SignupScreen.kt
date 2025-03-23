@@ -130,7 +130,10 @@ fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel 
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .fillMaxWidth(0.85f)
-                .height(50.dp)
+                .height(50.dp),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF10298F) // 버튼 색상 적용
+            )
         ) {
             Text(text = "제출", fontSize = 18.sp)
         }
