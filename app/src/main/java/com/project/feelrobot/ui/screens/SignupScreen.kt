@@ -151,8 +151,9 @@ fun SignupForm(
     onNameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
-    onEmailChange: (String) -> Unit
+    onEmailChange: (String) -> Unit,
 ) {
+    var passwordError by remember { mutableStateOf(false) }  // 비밀번호 검증 상태
 
     Column(modifier = Modifier.fillMaxWidth(0.85f)) {
         TextFieldRow(label = "아이디",
@@ -177,9 +178,23 @@ fun SignupForm(
             label = "비밀번호 재입력",
             value = confirmPassword,
             placeholder = "비밀번호를 다시 한번 입력하세요.",
-            onValueChange = onConfirmPasswordChange,
+            onValueChange = {
+                onConfirmPasswordChange(it)
+                passwordError = it.isNotEmpty() && (password != it) // 비밀번호 불일치 시 에러 상태 업데이트
+            },
             isPassword = true
         )
+
+        // 비밀번호 불일치 시 에러 메시지 표시
+        if (passwordError) {
+            Text(
+                text = "비밀번호가 일치하지 않습니다.",
+                fontSize = 14.sp,
+                color = Color.Red,
+                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+            )
+        }
+
         TextFieldRow(label = "이메일",
             value = email,
             placeholder = "이메일을 입력하세요.",
