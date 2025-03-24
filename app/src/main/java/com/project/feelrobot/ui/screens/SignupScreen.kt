@@ -121,7 +121,7 @@ fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel 
                     Toast.makeText(context, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
                 } else {
                     signupViewModel.registerUser(
-                        RegisterDto(id, name, password, email, selectedUserType), context
+                        RegisterDto(id, password, email, name, selectedUserType), context
                     ) {
                         navController.navigate("login") { popUpTo("signup") { inclusive = true } }
                     }
