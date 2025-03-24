@@ -10,15 +10,15 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface Api {
-    @POST("/sign/register")
-    suspend fun register(@Body registerDto: RegisterDto):Response<String>
+    @POST("sign/register")
+    suspend fun register(@Body registerDto: RegisterDto):Response<Void>
 
-    @POST("/sign/login")
+    @POST("sign/login")
     suspend fun login(@Body loginRequestDto: LoginRequestDto): Response<LoginResponseDto>
 
-    @POST("/sign/logout")
+    @POST("sign/logout")
     suspend fun logout(@Body logoutRequest: LogoutRequestDto): Response<String>
 
-    @POST("/sign/refresh")
+    @POST("sign/refresh")
     suspend fun refreshToken(@Body refreshDto: RefreshDto): Response<LoginResponseDto>
 }
