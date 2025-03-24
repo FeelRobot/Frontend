@@ -1,6 +1,7 @@
 package com.project.feelrobot.ui.screens
 
 //noinspection UsingMaterialAndMaterial3Libraries
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,8 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.kakao.sdk.user.UserApiClient
 import com.project.feelrobot.R
 import com.project.feelrobot.components.TextFieldRow
+import com.project.feelrobot.service.sendTokenToServer
 import com.project.feelrobot.storage.JwtTokenManager
 import com.project.feelrobot.viewmodel.LoginViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -47,10 +50,42 @@ import kotlinx.coroutines.launch
 fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = viewModel()) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    var navigateTo by remember { mutableStateOf<String?>(null) }
 
     var id by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isAutoLogin by remember { mutableStateOf(false) } // 자동 로그인 체크박스 상태
+
+    // 카카오 로그인 처리
+    val kakaoLogin: () -> Unit = {
+        if (UserApiClient.instance.isKakaoTalkLoginAvailable(context)) {
+            // 카카오톡으로 로그인 가능할 경우
+            UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
+                if (error != null) {
+                    Log.e("KakaoLogin", "로그인 실패: ${error.message}")
+                } else if (token != null) {
+                    coroutineScope.launch {
+                        sendTokenToServer(token.accessToken, context) { route ->
+                            navigateTo = route // ✅ 성공 시 이동할 라우트 저장
+                        }
+                    }
+                }
+            }
+        } else {
+            // 카카오톡이 없을 경우 → 카카오 계정 로그인
+            UserApiClient.instance.loginWithKakaoAccount(context) { token, error ->
+                if (error != null) {
+                    Log.e("KakaoLogin", "로그인 실패: ${error.message}")
+                } else if (token != null) {
+                    coroutineScope.launch {
+                        sendTokenToServer(token.accessToken, context) { route ->
+                            navigateTo = route
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // 저장된 자동 로그인 정보 불러오기
     LaunchedEffect(Unit) {
@@ -65,6 +100,15 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = v
                         navController.navigate("home") { popUpTo("login") { inclusive = true } }
                     }
                 }
+            }
+        }
+    }
+
+    // 로그인 성공 후 자동으로 특정 라우트로 이동
+    LaunchedEffect(navigateTo) {
+        navigateTo?.let {
+            navController.navigate(it) {
+                popUpTo("login") { inclusive = true }
             }
         }
     }
@@ -180,17 +224,13 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = v
                 horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center
             ) {
                 SocialLoginButton(
-                    navController = navController,
-                    route = "kakaoLogin",
-                    iconResId = R.drawable.kakaotalk_icon
+                    onClick = { kakaoLogin() }, iconResId = R.drawable.kakaotalk_icon
                 )
                 Spacer(modifier = Modifier.width(16.dp))
 
                 SocialLoginButton(
-                    navController = navController,
-                    route = "googleLogin",
-                    iconResId = R.drawable.google_icon,
-                    isGoogle = true
+                    onClick = { kakaoLogin() }, // 임시
+                    iconResId = R.drawable.google_icon, isGoogle = true
                 )
             }
         }
@@ -223,8 +263,7 @@ fun LoginForm(
 
 @Composable
 fun SocialLoginButton(
-    navController: NavController, // 네비게이션 컨트롤러
-    route: String, // 이동할 네비게이션 경로
+    onClick: () -> Unit, // onClick 추가
     iconResId: Int, // 아이콘 리소스 ID
     isGoogle: Boolean = false // 구글 버튼 여부 추가
 ) {
@@ -236,7 +275,7 @@ fun SocialLoginButton(
                     Color.White, shape = CircleShape
                 ) else Modifier
             ) // 구글 버튼만 흰색 원 배경 추가
-            .clickable { navController.navigate(route) }) {
+            .clickable { onClick() }) {
         Image(
             painter = painterResource(id = iconResId),
             contentDescription = "Social Login Button",
@@ -245,4 +284,3 @@ fun SocialLoginButton(
         )
     }
 }
-

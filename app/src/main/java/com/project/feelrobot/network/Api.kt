@@ -1,5 +1,7 @@
 package com.project.feelrobot.network
 
+import com.project.feelrobot.model.dto.KakaoRequestDto
+import com.project.feelrobot.model.dto.KakaoResponseDto
 import com.project.feelrobot.model.dto.LoginRequestDto
 import com.project.feelrobot.model.dto.LoginResponseDto
 import com.project.feelrobot.model.dto.LogoutRequestDto
@@ -21,4 +23,8 @@ interface Api {
 
     @POST("sign/refresh")
     suspend fun refreshToken(@Body refreshDto: RefreshDto): Response<LoginResponseDto>
+
+    @POST("sign/kakao/callback")
+    suspend fun kakaoLogin(@Body request: KakaoRequestDto): Response<KakaoResponseDto>
+
 }
