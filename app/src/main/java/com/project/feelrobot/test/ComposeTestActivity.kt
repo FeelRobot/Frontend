@@ -8,8 +8,5 @@ import com.project.feelrobot.ui.screens.SignupScreen
 class ComposeTestActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            SignupScreen() // 테스트할 화면만 실행
-        }
     }
 }
