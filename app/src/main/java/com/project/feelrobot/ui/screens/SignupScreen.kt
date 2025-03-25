@@ -99,7 +99,8 @@ fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel 
         Spacer(modifier = Modifier.height(16.dp))
 
         // 입력 필드 폼
-        SignupForm(id = id,
+        SignupForm(
+            id = id,
             name = name,
             password = password,
             confirmPassword = confirmPassword,
@@ -108,7 +109,9 @@ fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel 
             onNameChange = { name = it },
             onPasswordChange = { password = it },
             onConfirmPasswordChange = { confirmPassword = it },
-            onEmailChange = { email = it })
+            onEmailChange = { email = it },
+            signupViewModel = signupViewModel // ViewModel 주입
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -152,8 +155,13 @@ fun SignupForm(
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
+    signupViewModel: SignupViewModel
 ) {
     var passwordError by remember { mutableStateOf(false) }  // 비밀번호 검증 상태
+    var emailCode by remember { mutableStateOf("") }         // 이메일 인증번호 입력 필드
+    var isEmailVerified by remember { mutableStateOf(false) } // 인증 성공 여부
+
+    val context = LocalContext.current // 여기서 한 번만 호출, 변수에 저장
 
     Column(modifier = Modifier.fillMaxWidth(0.85f)) {
         TextFieldRow(label = "아이디",
@@ -161,7 +169,13 @@ fun SignupForm(
             placeholder = "아이디를 입력하세요.",
             onValueChange = onIdChange,
             buttonText = "중복 확인",
-            onButtonClick = { TODO("아이디 중복 확인 로직 추가") })
+            onButtonClick = {
+                signupViewModel.checkIdDuplication(id, context) { success ->
+                    if (success) {
+                        // 아이디 사용 가능
+                    }
+                }
+            })
 
         TextFieldRow(
             label = "이름", value = name, placeholder = "이름을 입력하세요.", onValueChange = onNameChange
@@ -200,7 +214,38 @@ fun SignupForm(
             placeholder = "이메일을 입력하세요.",
             buttonText = "인증하기",
             onValueChange = onEmailChange,
-            onButtonClick = { TODO("이메일 인증 로직 추가") })
+            onButtonClick = {
+                signupViewModel.sendEmailAuth(email, context) { success ->
+                    if (success) {
+                        // 메일 전송 성공
+                    }
+                }
+            })
+
+        // 이메일 인증번호 입력 + 확인 버튼
+        TextFieldRow(label = "인증번호",
+            value = emailCode,
+            placeholder = "메일로 받은 번호 입력",
+            onValueChange = { emailCode = it },
+            buttonText = "인증 확인",
+            onButtonClick = {
+                signupViewModel.verifyEmailAuth(
+                    email, emailCode, context
+                ) { verified ->
+                    if (verified) {
+                        isEmailVerified = true
+                    }
+                }
+            })
+
+        if (isEmailVerified) {
+            Text(
+                text = "이메일 인증 완료!",
+                fontSize = 14.sp,
+                color = Color.Green,
+                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+            )
+        }
     }
 }
 

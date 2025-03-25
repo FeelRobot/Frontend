@@ -7,6 +7,7 @@ import okhttp3.OkHttpClient
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 
 object RetrofitInstance {
@@ -23,6 +24,7 @@ object RetrofitInstance {
 
         return Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
+            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(Api::class.java)
@@ -39,6 +41,7 @@ object RetrofitInstance {
 
             retrofit = Retrofit.Builder()
                 .baseUrl(BuildConfig.API_BASE_URL)
+                .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client) // OkHttpClient 적용
                 .build()
