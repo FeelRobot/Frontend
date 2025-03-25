@@ -1,6 +1,8 @@
 package com.project.feelrobot.ui.screens
 
 //noinspection UsingMaterialAndMaterial3Libraries
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,10 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.kakao.sdk.user.UserApiClient
 import com.project.feelrobot.R
 import com.project.feelrobot.components.TextFieldRow
-import com.project.feelrobot.service.sendTokenToServer
 import com.project.feelrobot.storage.JwtTokenManager
 import com.project.feelrobot.viewmodel.LoginViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -50,42 +50,12 @@ import kotlinx.coroutines.launch
 fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = viewModel()) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    var navigateTo by remember { mutableStateOf<String?>(null) }
+    val navigateTo by remember { mutableStateOf<String?>(null) }
+    val localContext = LocalContext.current
 
     var id by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isAutoLogin by remember { mutableStateOf(false) } // 자동 로그인 체크박스 상태
-
-    // 카카오 로그인 처리
-    val kakaoLogin: () -> Unit = {
-        if (UserApiClient.instance.isKakaoTalkLoginAvailable(context)) {
-            // 카카오톡으로 로그인 가능할 경우
-            UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
-                if (error != null) {
-                    Log.e("KakaoLogin", "로그인 실패: ${error.message}")
-                } else if (token != null) {
-                    coroutineScope.launch {
-                        sendTokenToServer(token.accessToken, context) { route ->
-                            navigateTo = route // ✅ 성공 시 이동할 라우트 저장
-                        }
-                    }
-                }
-            }
-        } else {
-            // 카카오톡이 없을 경우 → 카카오 계정 로그인
-            UserApiClient.instance.loginWithKakaoAccount(context) { token, error ->
-                if (error != null) {
-                    Log.e("KakaoLogin", "로그인 실패: ${error.message}")
-                } else if (token != null) {
-                    coroutineScope.launch {
-                        sendTokenToServer(token.accessToken, context) { route ->
-                            navigateTo = route
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     // 저장된 자동 로그인 정보 불러오기
     LaunchedEffect(Unit) {
@@ -224,12 +194,13 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = v
                 horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center
             ) {
                 SocialLoginButton(
-                    onClick = { kakaoLogin() }, iconResId = R.drawable.kakaotalk_icon
+                    onClick = { openKakaoAuthPage(localContext) },
+                    iconResId = R.drawable.kakaotalk_icon
                 )
                 Spacer(modifier = Modifier.width(16.dp))
 
                 SocialLoginButton(
-                    onClick = { kakaoLogin() }, // 임시
+                    onClick = { openKakaoAuthPage(localContext) }, // 임시
                     iconResId = R.drawable.google_icon, isGoogle = true
                 )
             }
@@ -283,4 +254,16 @@ fun SocialLoginButton(
             contentScale = ContentScale.Fit
         )
     }
+}
+
+// Custom Tabs를 통해 카카오 OAuth 인가 페이지를 여는 함수
+fun openKakaoAuthPage(context: Context) {
+    // 카카오 developers에 등록된 REST API 키와 redirect URI
+    val kakaoRestApiKey = context.getString(R.string.kakao_client_id)
+    val redirectUri = context.getString(R.string.kakao_redirect_uri)
+    val authUrl =
+        "https://kauth.kakao.com/oauth/authorize?client_id=$kakaoRestApiKey&redirect_uri=$redirectUri&response_type=code"
+    Log.d("LoginScreen", "OAuth URL: $authUrl")
+    val customTabsIntent = androidx.browser.customtabs.CustomTabsIntent.Builder().build()
+    customTabsIntent.launchUrl(context, Uri.parse(authUrl))
 }

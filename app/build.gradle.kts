@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.volley)
     implementation(libs.androidx.tools.core)
+    implementation(libs.androidx.browser)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -90,6 +91,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation (libs.converter.scalars)
 
     // Retrofit
     implementation(libs.retrofit)
@@ -102,7 +105,5 @@ dependencies {
     // data store
     implementation(libs.androidx.datastore.preferences)
 
-    // social login
-    implementation(libs.v2.user) // 카카오 로그인
 
 }
