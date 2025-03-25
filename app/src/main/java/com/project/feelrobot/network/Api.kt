@@ -5,15 +5,18 @@ import com.project.feelrobot.model.dto.KakaoResponseDto
 import com.project.feelrobot.model.dto.LoginRequestDto
 import com.project.feelrobot.model.dto.LoginResponseDto
 import com.project.feelrobot.model.dto.LogoutRequestDto
+import com.project.feelrobot.model.dto.MailDto
 import com.project.feelrobot.model.dto.RefreshDto
 import com.project.feelrobot.model.dto.RegisterDto
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface Api {
     @POST("sign/register")
-    suspend fun register(@Body registerDto: RegisterDto):Response<Void>
+    suspend fun register(@Body registerDto: RegisterDto): Response<String>
 
     @POST("sign/login")
     suspend fun login(@Body loginRequestDto: LoginRequestDto): Response<LoginResponseDto>
@@ -27,4 +30,14 @@ interface Api {
     @POST("sign/kakao/callback")
     suspend fun kakaoLogin(@Body request: KakaoRequestDto): Response<KakaoResponseDto>
 
+    @GET("sign/check/{id}")
+    suspend fun checkIdDuplication(@Path("id") id: String): Response<String>
+
+    @POST("sign/mail")
+    suspend fun sendMail(@Body mailDto: MailDto): Response<String>
+
+    @GET("sign/check/{email}/{number}")
+    suspend fun verifyMail(
+        @Path("email") email: String, @Path("number") number: Int
+    ): Response<String>
 }
