@@ -1,4 +1,4 @@
-package com.project.feelrobot.ui.screens
+package com.project.feelrobot.ui.screens.login
 
 //noinspection UsingMaterialAndMaterial3Libraries
 import android.content.Context

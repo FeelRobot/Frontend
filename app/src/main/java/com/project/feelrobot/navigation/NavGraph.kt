@@ -11,9 +11,9 @@ import com.project.feelrobot.ui.screens.ChatScreen
 import com.project.feelrobot.ui.screens.GoogleLoginScreen
 import com.project.feelrobot.ui.screens.HomeScreen
 import com.project.feelrobot.ui.screens.KakaoLoginScreen
-import com.project.feelrobot.ui.screens.LoginScreen
+import com.project.feelrobot.ui.screens.login.LoginScreen
 import com.project.feelrobot.ui.screens.MyPageScreen
-import com.project.feelrobot.ui.screens.SignupScreen
+import com.project.feelrobot.ui.screens.login.SignupScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)

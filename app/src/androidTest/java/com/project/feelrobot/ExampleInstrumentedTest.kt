@@ -1,9 +1,8 @@
 package com.project.feelrobot
 
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.project.feelrobot.ui.screens.SignupScreen
+import com.project.feelrobot.ui.screens.login.SignupScreen
 
 import org.junit.Test
 import org.junit.runner.RunWith
