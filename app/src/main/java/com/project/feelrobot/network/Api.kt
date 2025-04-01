@@ -1,13 +1,14 @@
 package com.project.feelrobot.network
 
-import com.project.feelrobot.model.dto.KakaoRequestDto
-import com.project.feelrobot.model.dto.KakaoResponseDto
-import com.project.feelrobot.model.dto.LoginRequestDto
-import com.project.feelrobot.model.dto.LoginResponseDto
-import com.project.feelrobot.model.dto.LogoutRequestDto
-import com.project.feelrobot.model.dto.MailDto
-import com.project.feelrobot.model.dto.RefreshDto
-import com.project.feelrobot.model.dto.RegisterDto
+import com.project.feelrobot.model.dto.sign.KakaoRequestDto
+import com.project.feelrobot.model.dto.sign.KakaoResponseDto
+import com.project.feelrobot.model.dto.sign.LoginRequestDto
+import com.project.feelrobot.model.dto.sign.LoginResponseDto
+import com.project.feelrobot.model.dto.sign.LogoutRequestDto
+import com.project.feelrobot.model.dto.sign.MailDto
+import com.project.feelrobot.model.dto.sign.RefreshDto
+import com.project.feelrobot.model.dto.sign.RegisterDto
+import com.project.feelrobot.model.dto.user.SurveyResponseDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -40,4 +41,7 @@ interface Api {
     suspend fun verifyMail(
         @Path("email") email: String, @Path("number") number: Int
     ): Response<String>
+
+    @POST("user/survey")
+    suspend fun survey(@Body surveyResponseDto: SurveyResponseDto): Response<String>
 }
