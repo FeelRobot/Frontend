@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.project.feelrobot.R
-import com.project.feelrobot.model.dto.KakaoRequestDto
-import com.project.feelrobot.model.dto.LoginRequestDto
+import com.project.feelrobot.model.dto.sign.KakaoRequestDto
+import com.project.feelrobot.model.dto.sign.LoginRequestDto
 import com.project.feelrobot.network.RetrofitInstance
 import com.project.feelrobot.storage.JwtTokenManager
 import kotlinx.coroutines.launch
@@ -58,8 +58,7 @@ class LoginViewModel : ViewModel() {
                             navController.navigate("home") { popUpTo("login") { inclusive = true } }
                         } else {
                             // 미가입: access_token 필드에 이메일이 담겨 있음 -> 회원가입 화면으로 이동해 추가 정보 입력 받음
-                            // TODO("추가 정보 입력을 위한 페이지로 route")
-                            navController.navigate("") {
+                            navController.navigate("signup?email=${body.access_token}") {
                                 popUpTo("login") { inclusive = true }
                             }
 
