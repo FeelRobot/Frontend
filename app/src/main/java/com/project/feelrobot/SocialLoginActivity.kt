@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
-import com.project.feelrobot.ui.screens.LoginScreen
+import com.project.feelrobot.ui.screens.login.LoginScreen
 import com.project.feelrobot.ui.theme.FeelRobotTheme
 import com.project.feelrobot.viewmodel.LoginViewModel
 
@@ -71,8 +71,6 @@ class SocialLoginActivity : ComponentActivity() {
                     "SocialLoginActivity",
                     "Received tokens from redirect: accessToken=$accessToken, refreshToken=$refreshToken"
                 )
-                TODO("JwtTokenManager에 토큰 저장")
-                TODO("홈으로 이동")
             }
         }
     }

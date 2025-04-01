@@ -43,7 +43,11 @@ import com.project.feelrobot.model.dto.RegisterDto
 import com.project.feelrobot.viewmodel.SignupViewModel
 
 @Composable
-fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel = viewModel()) {
+fun SignupScreen(
+    initialEmail: String,
+    navController: NavController,
+    signupViewModel: SignupViewModel = viewModel()
+) {
     val context = LocalContext.current  // 여기서 context를 가져옴
 
     var id by remember { mutableStateOf("") }
@@ -54,6 +58,8 @@ fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel 
 
     var selectedUserType by remember { mutableIntStateOf(0) } // 0: 학생, 1: 보호자
     val scrollState = rememberScrollState()
+
+    var isSignPossible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -99,8 +105,7 @@ fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel 
         Spacer(modifier = Modifier.height(16.dp))
 
         // 입력 필드 폼
-        SignupForm(
-            id = id,
+        SignupForm(id = id,
             name = name,
             password = password,
             confirmPassword = confirmPassword,
@@ -110,8 +115,11 @@ fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel 
             onPasswordChange = { password = it },
             onConfirmPasswordChange = { confirmPassword = it },
             onEmailChange = { email = it },
-            signupViewModel = signupViewModel // ViewModel 주입
-        )
+            signupViewModel = signupViewModel, // ViewModel 주입
+            isSocialLogin = initialEmail.isNotEmpty(),
+            onSignPossibleChange = { new ->
+                isSignPossible = new
+            })
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -120,8 +128,9 @@ fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel 
         // 제출 버튼
         Button(
             onClick = {
-                if (password != confirmPassword) {
-                    Toast.makeText(context, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
+                if (!isSignPossible) {
+                    Toast.makeText(context, "필수 항목을 모두 충족해야 합니다.", Toast.LENGTH_SHORT).show()
+                    return@Button
                 } else {
                     signupViewModel.registerUser(
                         RegisterDto(id, password, email, name, selectedUserType), context
@@ -136,7 +145,8 @@ fun SignupScreen(navController: NavController, signupViewModel: SignupViewModel 
                 .height(50.dp),
             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF10298F) // 버튼 색상 적용
-            )
+            ),
+            enabled = isSignPossible
         ) {
             Text(text = "제출", fontSize = 18.sp)
         }
@@ -155,10 +165,13 @@ fun SignupForm(
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
-    signupViewModel: SignupViewModel
+    signupViewModel: SignupViewModel,
+    isSocialLogin: Boolean,
+    onSignPossibleChange: (Boolean) -> Unit
 ) {
     var passwordError by remember { mutableStateOf(false) }  // 비밀번호 검증 상태
     var emailCode by remember { mutableStateOf("") }         // 이메일 인증번호 입력 필드
+    var isIdDuplicated by remember { mutableStateOf(true) } // 아이디 중복 여부
     var isEmailVerified by remember { mutableStateOf(false) } // 인증 성공 여부
 
     val context = LocalContext.current // 여기서 한 번만 호출, 변수에 저장
@@ -171,11 +184,23 @@ fun SignupForm(
             buttonText = "중복 확인",
             onButtonClick = {
                 signupViewModel.checkIdDuplication(id, context) { success ->
-                    if (success) {
-                        // 아이디 사용 가능
-                    }
+                    isIdDuplicated = !success // 아이디 사용 가능
+
+                    // 바뀐 상태에 따라 가입 가능 여부 재계산
+                    checkSignPossible(
+                        isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+                    )
                 }
             })
+
+        if (isIdDuplicated) {
+            Text(
+                text = "이미 사용 중인 아이디입니다.",
+                fontSize = 14.sp,
+                color = Color.Red,
+                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+            )
+        }
 
         TextFieldRow(
             label = "이름", value = name, placeholder = "이름을 입력하세요.", onValueChange = onNameChange
@@ -186,7 +211,8 @@ fun SignupForm(
             value = password,
             placeholder = "비밀번호를 입력하세요.",
             onValueChange = onPasswordChange,
-            isPassword = true
+            isPassword = true,
+            modifiable = !isSocialLogin // 소셜 로그인인 경우 수정 불가능하도록
         )
         TextFieldRow(
             label = "비밀번호 재입력",
@@ -195,8 +221,12 @@ fun SignupForm(
             onValueChange = {
                 onConfirmPasswordChange(it)
                 passwordError = it.isNotEmpty() && (password != it) // 비밀번호 불일치 시 에러 상태 업데이트
+                checkSignPossible(
+                    isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+                )
             },
-            isPassword = true
+            isPassword = true,
+            modifiable = !isSocialLogin // 소셜 로그인인 경우 수정 불가능하도록
         )
 
         // 비밀번호 불일치 시 에러 메시지 표시
@@ -212,8 +242,9 @@ fun SignupForm(
         TextFieldRow(label = "이메일",
             value = email,
             placeholder = "이메일을 입력하세요.",
-            buttonText = "인증하기",
+            buttonText = if (isSocialLogin) "인증하기" else null,
             onValueChange = onEmailChange,
+            modifiable = !isSocialLogin, // 소셜 로그인인 경우 false
             onButtonClick = {
                 signupViewModel.sendEmailAuth(email, context) { success ->
                     if (success) {
@@ -228,24 +259,31 @@ fun SignupForm(
             placeholder = "메일로 받은 번호 입력",
             onValueChange = { emailCode = it },
             buttonText = "인증 확인",
+            modifiable = !isSocialLogin,
             onButtonClick = {
                 signupViewModel.verifyEmailAuth(
                     email, emailCode, context
                 ) { verified ->
-                    if (verified) {
-                        isEmailVerified = true
-                    }
+                    isEmailVerified = verified || isSocialLogin
+                    checkSignPossible(
+                        isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+                    )
                 }
             })
 
         if (isEmailVerified) {
             Text(
-                text = "이메일 인증 완료!",
+                text = "이메일 인증 성공",
                 fontSize = 14.sp,
                 color = Color.Green,
                 modifier = Modifier.padding(start = 8.dp, top = 4.dp)
             )
-        }
+        } else Text(
+            text = "이메일 인증 실패",
+            fontSize = 14.sp,
+            color = Color.Green,
+            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+        )
     }
 }
 
@@ -275,4 +313,15 @@ fun UserTypeSelector(selectedUserType: Int, onUserTypeSelected: (Int) -> Unit) {
             }
         }
     }
+}
+
+// 아이디 중복, 비밀번호 확인, 이메일 인증을 통해 가입 가능여부를 판단하기 위해 isSignPossible 변경
+private fun checkSignPossible(
+    isIdDuplicated: Boolean,
+    passwordError: Boolean,
+    isEmailVerified: Boolean,
+    onSignPossibleChange: (Boolean) -> Unit
+) {
+    val canSign = !isIdDuplicated && !passwordError && isEmailVerified
+    onSignPossibleChange(canSign)
 }

@@ -59,9 +59,8 @@ class SignupViewModel : ViewModel() {
         }
     }
 
-    /**
-     * 이메일 인증번호 전송
-     */
+
+    // 이메일 인증번호 전송
     fun sendEmailAuth(email: String, context: Context, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
@@ -84,9 +83,8 @@ class SignupViewModel : ViewModel() {
         }
     }
 
-    /**
-     * 이메일 인증번호 검증
-     */
+
+    // 이메일 인증번호 검증
     fun verifyEmailAuth(
         email: String,
         code: String,
