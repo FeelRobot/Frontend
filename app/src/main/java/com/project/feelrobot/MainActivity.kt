@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -33,14 +34,42 @@ import com.project.feelrobot.ui.theme.FeelRobotTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private var navigateTo: String? = null
+    private var signupEmail: String? = null
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // 인텐트에서 값 추출
+        navigateTo = intent.getStringExtra("navigate_to")
+        signupEmail = intent.getStringExtra("signup_email")
+
         setContent {
             FeelRobotTheme {
                 val navController = rememberNavController()
-
+                LaunchedEffect(Unit) {
+                    when (navigateTo) {
+                        "signup" -> {
+                            // 회원가입 화면으로 이동, email이 있다면 파라미터로 전달
+                            signupEmail?.let { email ->
+                                val route = "signup?email=$email"
+                                navController.navigate(route) {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } ?: run {
+                                // email이 없는 경우 그냥 signup 으로
+                                navController.navigate("signup") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            }
+                        }
+                        else -> {
+                            // 기본 동작: 아무것도 안 하면 NavGraph의 startDestination("home")으로
+                        }
+                    }
+                }
                 MainScreen(
                     navController = navController
                 )
@@ -64,7 +93,7 @@ fun MainScreen(
             Sidebar(navController = navController, drawerState = drawerState) // 사이드바 composable
         }) {
         Scaffold(topBar = {
-            TopAppBar(title = { Text("FeelRobot") }, // App Bar 제목 설정
+            TopAppBar(title = { Text("Feelobot") }, // App Bar 제목 설정
                 navigationIcon = {
                     IconButton(onClick = {
                         scope.launch {
