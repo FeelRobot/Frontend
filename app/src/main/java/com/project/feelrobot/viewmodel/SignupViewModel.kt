@@ -5,8 +5,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.feelrobot.model.dto.MailDto
-import com.project.feelrobot.model.dto.RegisterDto
+import com.project.feelrobot.model.dto.sign.MailDto
+import com.project.feelrobot.model.dto.sign.RegisterDto
+import com.project.feelrobot.model.dto.user.SurveyResponseDto
 import com.project.feelrobot.network.RetrofitInstance
 import kotlinx.coroutines.launch
 
@@ -26,6 +27,28 @@ class SignupViewModel : ViewModel() {
                 } else {
                     val errorMessage = response.errorBody()?.string() ?: "회원가입 실패"
                     Log.e("SignupViewModel", "회원가입 실패: $errorMessage") // 에러 로그 추가
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("SignupViewModel", "서버 연결 오류: ${e.message}", e) // 네트워크 오류 확인
+                Toast.makeText(context, "서버 에러: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun submitSurvey(
+        surveyResponseDto: SurveyResponseDto, context: Context, onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.survey(surveyResponseDto)
+                if (response.isSuccessful) {
+                    Log.d("SignupViewModel", "설문조사 제출 성공: ${response.body()}")
+                    Toast.makeText(context, "설문조사 제출 성공!", Toast.LENGTH_SHORT).show()
+                    onSuccess() // 설문조사 제출 성공 시, 후속 액션
+                } else {
+                    val errorMessage = response.errorBody()?.string() ?: "설문조사 제출 실패"
+                    Log.e("SignupViewModel", "설문조사 제출 실패: $errorMessage") // 에러 로그 추가
                     Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
@@ -86,10 +109,7 @@ class SignupViewModel : ViewModel() {
 
     // 이메일 인증번호 검증
     fun verifyEmailAuth(
-        email: String,
-        code: String,
-        context: Context,
-        onResult: (Boolean) -> Unit
+        email: String, code: String, context: Context, onResult: (Boolean) -> Unit
     ) {
         // code를 Int로 변환 시도
         val number = code.toIntOrNull()
