@@ -21,6 +21,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,8 +49,7 @@ fun SignupScreen(
     navController: NavController,
     signupViewModel: SignupViewModel = viewModel()
 ) {
-    val context = LocalContext.current  // 여기서 context를 가져옴
-
+    val context = LocalContext.current
     var id by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -58,8 +58,18 @@ fun SignupScreen(
 
     var selectedUserType by remember { mutableIntStateOf(0) } // 0: 학생, 1: 보호자
     val scrollState = rememberScrollState()
-
     var isSignPossible by remember { mutableStateOf(false) } // 회원가입 가능 여부
+
+    val isSocialLogin = initialEmail.isNotEmpty() // 소셜로그인 여부
+
+    // 소셜 로그인 시 이메일 고정, 비밀번호 랜덤 문자열 설정
+    LaunchedEffect(Unit) {
+        if (isSocialLogin) {
+            email = initialEmail
+            password = "******"
+            confirmPassword = "******"
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -110,10 +120,8 @@ fun SignupScreen(
             onConfirmPasswordChange = { confirmPassword = it },
             onEmailChange = { email = it },
             signupViewModel = signupViewModel, // ViewModel 주입
-            isSocialLogin = initialEmail.isNotEmpty(),
-            onSignPossibleChange = { new ->
-                isSignPossible = new
-            })
+            isSocialLogin = isSocialLogin,
+            onSignPossibleChange = { new -> isSignPossible = new })
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -180,11 +188,24 @@ fun SignupForm(
     var passwordError by remember { mutableStateOf(false) }  // 비밀번호 검증 상태
     var emailCode by remember { mutableStateOf("") }         // 이메일 인증번호 입력 필드
     var isIdDuplicated by remember { mutableStateOf(true) } // 아이디 중복 여부
+    var idCheckDone by remember { mutableStateOf(false) } // 아이디 중복 체크 수행 여부
     var isEmailVerified by remember { mutableStateOf(false) } // 인증 성공 여부
 
-    val context = LocalContext.current // 여기서 한 번만 호출, 변수에 저장
+    val context = LocalContext.current
+
+    // 소셜로그인 시 passwordError = false, isEmailVerified = true 로 고정
+    LaunchedEffect(isSocialLogin) {
+        if (isSocialLogin) {
+            isEmailVerified = true
+            passwordError = false
+            checkSignPossible(
+                isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+            )
+        }
+    }
 
     Column(modifier = Modifier.fillMaxWidth(0.85f)) {
+        // 1. 아이디
         TextFieldRow(label = "아이디",
             value = id,
             placeholder = "아이디를 입력하세요.",
@@ -192,6 +213,7 @@ fun SignupForm(
             buttonText = "중복 확인",
             onButtonClick = {
                 signupViewModel.checkIdDuplication(id, context) { success ->
+                    idCheckDone = true
                     isIdDuplicated = !success // 아이디 사용 가능
 
                     // 바뀐 상태에 따라 가입 가능 여부 재계산
@@ -200,8 +222,7 @@ fun SignupForm(
                     )
                 }
             })
-
-        if (isIdDuplicated) {
+        if (idCheckDone && isIdDuplicated) {
             Text(
                 text = "이미 사용 중인 아이디입니다.",
                 fontSize = 14.sp,
@@ -210,47 +231,52 @@ fun SignupForm(
             )
         }
 
+
+        // 2. 이름
         TextFieldRow(
             label = "이름", value = name, placeholder = "이름을 입력하세요.", onValueChange = onNameChange
         )
 
-        TextFieldRow(
-            label = "비밀번호",
-            value = password,
-            placeholder = "비밀번호를 입력하세요.",
-            onValueChange = onPasswordChange,
-            isPassword = true,
-            modifiable = !isSocialLogin // 소셜 로그인인 경우 수정 불가능하도록
-        )
-        TextFieldRow(
-            label = "비밀번호 재입력",
-            value = confirmPassword,
-            placeholder = "비밀번호를 다시 한번 입력하세요.",
-            onValueChange = {
-                onConfirmPasswordChange(it)
-                passwordError = it.isNotEmpty() && (password != it) // 비밀번호 불일치 시 에러 상태 업데이트
-                checkSignPossible(
-                    isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
-                )
-            },
-            isPassword = true,
-            modifiable = !isSocialLogin // 소셜 로그인인 경우 수정 불가능하도록
-        )
-
-        // 비밀번호 불일치 시 에러 메시지 표시
-        if (passwordError) {
-            Text(
-                text = "비밀번호가 일치하지 않습니다.",
-                fontSize = 14.sp,
-                color = Color.Red,
-                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+        // 3. 비밀번호 입력/재입력
+        if (!isSocialLogin) {
+            TextFieldRow(
+                label = "비밀번호",
+                value = password,
+                placeholder = "비밀번호를 입력하세요.",
+                onValueChange = onPasswordChange,
+                isPassword = true,
             )
+            TextFieldRow(
+                label = "비밀번호 재입력",
+                value = confirmPassword,
+                placeholder = "비밀번호를 다시 한번 입력하세요.",
+                onValueChange = {
+                    onConfirmPasswordChange(it)
+                    passwordError = it.isNotEmpty() && (password != it) // 비밀번호 불일치 시 에러 상태 업데이트
+                    checkSignPossible(
+                        isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+                    )
+                },
+                isPassword = true,
+            )
+
+            // 비밀번호 불일치 시 에러 메시지 표시
+            if (passwordError) {
+                Text(
+                    text = "비밀번호가 일치하지 않습니다.",
+                    fontSize = 14.sp,
+                    color = Color.Red,
+                    modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                )
+            }
         }
 
+
+        // 4. 이메일
         TextFieldRow(label = "이메일",
             value = email,
             placeholder = "이메일을 입력하세요.",
-            buttonText = if (isSocialLogin) "인증하기" else null,
+            buttonText = if (!isSocialLogin) "인증하기" else null,
             onValueChange = onEmailChange,
             modifiable = !isSocialLogin, // 소셜 로그인인 경우 false
             onButtonClick = {
@@ -261,37 +287,40 @@ fun SignupForm(
                 }
             })
 
-        // 이메일 인증번호 입력 + 확인 버튼
-        TextFieldRow(label = "인증번호",
-            value = emailCode,
-            placeholder = "메일로 받은 번호 입력",
-            onValueChange = { emailCode = it },
-            buttonText = "인증 확인",
-            modifiable = !isSocialLogin,
-            onButtonClick = {
-                signupViewModel.verifyEmailAuth(
-                    email, emailCode, context
-                ) { verified ->
-                    isEmailVerified = verified || isSocialLogin
-                    checkSignPossible(
-                        isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
-                    )
-                }
-            })
+        // 5. 인증번호
+        if (!isSocialLogin) {
+            // 이메일 인증번호 입력 + 확인 버튼
+            TextFieldRow(label = "인증번호",
+                value = emailCode,
+                placeholder = "메일로 받은 번호 입력",
+                onValueChange = { emailCode = it },
+                buttonText = "인증 확인",
+                onButtonClick = {
+                    signupViewModel.verifyEmailAuth(
+                        email, emailCode, context
+                    ) { verified ->
+                        isEmailVerified = verified
+                        checkSignPossible(
+                            isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+                        )
+                    }
+                })
 
-        if (isEmailVerified) {
-            Text(
-                text = "이메일 인증 성공",
+            if (isEmailVerified) {
+                Text(
+                    text = "이메일 인증 성공",
+                    fontSize = 14.sp,
+                    color = Color.Green,
+                    modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                )
+            } else Text(
+                text = "이메일 인증 실패",
                 fontSize = 14.sp,
                 color = Color.Green,
                 modifier = Modifier.padding(start = 8.dp, top = 4.dp)
             )
-        } else Text(
-            text = "이메일 인증 실패",
-            fontSize = 14.sp,
-            color = Color.Green,
-            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
-        )
+        }
+
     }
 }
 
