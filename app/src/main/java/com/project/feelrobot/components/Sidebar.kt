@@ -86,7 +86,7 @@ fun Sidebar(navController: NavController, drawerState: DrawerState) {
             SidebarButton("홈", navController, "home", drawerState, scope) {
                 Icon(Icons.Default.Home, contentDescription = "Home Icon") // 아이콘 추가
             }
-            SidebarButton("내 정보", navController, "myPage", drawerState, scope){
+            SidebarButton("내 정보", navController, "myPage", drawerState, scope) {
                 Icon(Icons.Default.Person, contentDescription = "My page")
             }
             SidebarButton("회원가입", navController, "signup", drawerState, scope) {
@@ -95,7 +95,13 @@ fun Sidebar(navController: NavController, drawerState: DrawerState) {
             SidebarButton("로그인", navController, "login", drawerState, scope) {
 
             }
-            SidebarButton("설문조사", navController, "survey", drawerState, scope) {
+            SidebarButton(
+                "설문조사",
+                navController,
+                "survey?id=test&password=1234&email=test@example.com&name=tester&role=0",
+                drawerState,
+                scope
+            ) {
 
             }
         }
