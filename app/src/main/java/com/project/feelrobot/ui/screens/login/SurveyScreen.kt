@@ -110,11 +110,13 @@ fun SurveyScreen(
                     return@Button
                 } else { // 설문조사까지 완료하면 회원가입 폼과 설문조사 폼을 함께 백으로 전송
                     if (registerDto != null) {
+                        val surveyResponseDto =
+                            SurveyResponseDto(registerDto.id, birth, sex, managerId)
+
                         signupViewModel.registerUser(
                             registerDto, context
                         ) {
-                            val surveyResponseDto =
-                                SurveyResponseDto(registerDto.id, birth, sex, managerId)
+
                             signupViewModel.submitSurvey(surveyResponseDto, context, onSuccess = {
                                 // 성공 시 화면 이동
                                 navController.navigate("home") {
@@ -124,6 +126,14 @@ fun SurveyScreen(
                                 }
                             })
                         }
+                        Log.d(
+                            "SurveyScreen",
+                            "id: ${registerDto.id} | email: ${registerDto.email} | name: ${registerDto.name} | role: ${registerDto.role}"
+                        )
+                        Log.d(
+                            "SurveyScreen",
+                            "userId: ${surveyResponseDto.userId} | birth: ${surveyResponseDto.birth} | sex: ${surveyResponseDto.sex} | managerId: ${surveyResponseDto.managerId}"
+                        )
                     }
                 }
             },
