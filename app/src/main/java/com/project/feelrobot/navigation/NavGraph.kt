@@ -9,13 +9,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.project.feelrobot.model.dto.sign.RegisterDto
 import com.project.feelrobot.ui.screens.ChatScreen
-import com.project.feelrobot.ui.screens.GoogleLoginScreen
 import com.project.feelrobot.ui.screens.HomeScreen
-import com.project.feelrobot.ui.screens.KakaoLoginScreen
 import com.project.feelrobot.ui.screens.MyPageScreen
 import com.project.feelrobot.ui.screens.login.LoginScreen
 import com.project.feelrobot.ui.screens.login.SignupScreen
+import com.project.feelrobot.ui.screens.login.SurveyScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -43,8 +43,24 @@ fun NavGraph(
             val email = backStackEntry.arguments?.getString("email") ?: ""
             SignupScreen(email, navController)
         }
-        composable("kakaoLogin") { KakaoLoginScreen() }
-        composable("googleLogin") { GoogleLoginScreen() }
 
+        // 가입한 유저가 학생일 경우 설문조사 페이지 이동
+        composable(route = "survey?id={id}&password={password}&email={email}&name={name}&role={role}",
+            arguments = listOf(navArgument("id") { type = NavType.StringType },
+                navArgument("password") { type = NavType.StringType },
+                navArgument("email") { type = NavType.StringType },
+                navArgument("name") { type = NavType.StringType },
+                navArgument("role") { type = NavType.IntType })) { backStackEntry ->
+            val idArg = backStackEntry.arguments?.getString("id") ?: ""
+            val passwordArg = backStackEntry.arguments?.getString("password") ?: ""
+            val emailArg = backStackEntry.arguments?.getString("email") ?: ""
+            val nameArg = backStackEntry.arguments?.getString("name") ?: ""
+            val roleArg = backStackEntry.arguments?.getInt("role") ?: 0
+
+            // 다시 RegisterDto로 만들 수 있음
+            val registerDto = RegisterDto(idArg, passwordArg, emailArg, nameArg, roleArg)
+
+            SurveyScreen(navController, registerDto)
+        }
     }
 }

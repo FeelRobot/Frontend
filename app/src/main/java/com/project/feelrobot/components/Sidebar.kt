@@ -95,6 +95,9 @@ fun Sidebar(navController: NavController, drawerState: DrawerState) {
             SidebarButton("로그인", navController, "login", drawerState, scope) {
 
             }
+            SidebarButton("설문조사", navController, "survey", drawerState, scope) {
+
+            }
         }
     }
 }

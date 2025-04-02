@@ -39,7 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.project.feelrobot.R
 import com.project.feelrobot.components.TextFieldRow
-import com.project.feelrobot.model.dto.RegisterDto
+import com.project.feelrobot.model.dto.sign.RegisterDto
 import com.project.feelrobot.viewmodel.SignupViewModel
 
 @Composable
@@ -59,7 +59,7 @@ fun SignupScreen(
     var selectedUserType by remember { mutableIntStateOf(0) } // 0: 학생, 1: 보호자
     val scrollState = rememberScrollState()
 
-    var isSignPossible by remember { mutableStateOf(false) }
+    var isSignPossible by remember { mutableStateOf(false) } // 회원가입 가능 여부
 
     Column(
         modifier = Modifier
@@ -94,12 +94,6 @@ fun SignupScreen(
             Text(
                 text = "환영합니다!", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black
             )
-            Text(
-                text = "당신을 설명해주세요!",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Gray
-            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -132,11 +126,25 @@ fun SignupScreen(
                     Toast.makeText(context, "필수 항목을 모두 충족해야 합니다.", Toast.LENGTH_SHORT).show()
                     return@Button
                 } else {
-                    signupViewModel.registerUser(
-                        RegisterDto(id, password, email, name, selectedUserType), context
-                    ) {
-                        navController.navigate("login") { popUpTo("signup") { inclusive = true } }
+                    if (selectedUserType == 0) { // 학생이면 설문조사 페이지로 이동
+                        val route =
+                            "survey?id=${id}" + "&password=${password}" + "&email=${email}" + "&name=${name}" + "&role=${0}"
+
+                        navController.navigate(route) {
+                            popUpTo("signup") { inclusive = true }
+                        }
+                    } else { // 보호자면 바로 register api를 호출하고 home으로 이동
+                        signupViewModel.registerUser(
+                            RegisterDto(id, password, email, name, selectedUserType), context
+                        ) {
+                            navController.navigate("home") {
+                                popUpTo("signup") {
+                                    inclusive = true
+                                }
+                            }
+                        }
                     }
+
                 }
             },
             shape = RoundedCornerShape(8.dp),
