@@ -142,17 +142,17 @@ fun SignupScreen(
                             popUpTo("signup") { inclusive = true }
                         }
                     } else { // 보호자면 바로 register api를 호출하고 home으로 이동
-                        signupViewModel.registerUser(
-                            RegisterDto(id, password, email, name, selectedUserType), context
-                        ) {
+                        signupViewModel.registerUser(RegisterDto(
+                            id, password, email, name, selectedUserType
+                        ), context, onSuccess = {
+                            // 최종 가입 + 로그인 성공 -> 홈 이동
                             navController.navigate("home") {
-                                popUpTo("signup") {
-                                    inclusive = true
-                                }
+                                popUpTo("signup") { inclusive = true }
                             }
-                        }
+                        }, onFailure = { errMsg ->
+                            Toast.makeText(context, errMsg, Toast.LENGTH_SHORT).show()
+                        })
                     }
-
                 }
             },
             shape = RoundedCornerShape(8.dp),
@@ -189,6 +189,7 @@ fun SignupForm(
     var emailCode by remember { mutableStateOf("") }         // 이메일 인증번호 입력 필드
     var isIdDuplicated by remember { mutableStateOf(true) } // 아이디 중복 여부
     var idCheckDone by remember { mutableStateOf(false) } // 아이디 중복 체크 수행 여부
+    var emailVerifyDone by remember { mutableStateOf(false) } // 이메일 인증 수행 여부
     var isEmailVerified by remember { mutableStateOf(false) } // 인증 성공 여부
 
     val context = LocalContext.current
@@ -296,6 +297,7 @@ fun SignupForm(
                 onValueChange = { emailCode = it },
                 buttonText = "인증 확인",
                 onButtonClick = {
+                    emailVerifyDone = true
                     signupViewModel.verifyEmailAuth(
                         email, emailCode, context
                     ) { verified ->
@@ -306,19 +308,22 @@ fun SignupForm(
                     }
                 })
 
-            if (isEmailVerified) {
-                Text(
-                    text = "이메일 인증 성공",
+            if (emailVerifyDone) {
+                if (isEmailVerified) {
+                    Text(
+                        text = "이메일 인증 성공",
+                        fontSize = 14.sp,
+                        color = Color.Green,
+                        modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                    )
+                } else Text(
+                    text = "이메일 인증 실패",
                     fontSize = 14.sp,
-                    color = Color.Green,
+                    color = Color.Red,
                     modifier = Modifier.padding(start = 8.dp, top = 4.dp)
                 )
-            } else Text(
-                text = "이메일 인증 실패",
-                fontSize = 14.sp,
-                color = Color.Green,
-                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
-            )
+            }
+
         }
 
     }
