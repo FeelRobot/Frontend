@@ -1,7 +1,5 @@
 package com.project.feelrobot.network
 
-import com.project.feelrobot.model.dto.sign.KakaoRequestDto
-import com.project.feelrobot.model.dto.sign.KakaoResponseDto
 import com.project.feelrobot.model.dto.sign.LoginRequestDto
 import com.project.feelrobot.model.dto.sign.LoginResponseDto
 import com.project.feelrobot.model.dto.sign.LogoutRequestDto
@@ -28,9 +26,6 @@ interface Api {
     @POST("sign/refresh")
     suspend fun refreshToken(@Body refreshDto: RefreshDto): Response<LoginResponseDto>
 
-    @POST("sign/kakao/callback")
-    suspend fun kakaoLogin(@Body request: KakaoRequestDto): Response<KakaoResponseDto>
-
     @GET("sign/check/{id}")
     suspend fun checkIdDuplication(@Path("id") id: String): Response<String>
 
@@ -44,4 +39,7 @@ interface Api {
 
     @POST("user/survey")
     suspend fun survey(@Body surveyResponseDto: SurveyResponseDto): Response<String>
+
+    @GET("user/info")
+    suspend fun userInfo(): Response<Any>
 }
