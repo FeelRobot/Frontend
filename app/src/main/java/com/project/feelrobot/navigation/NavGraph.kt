@@ -45,12 +45,14 @@ fun NavGraph(
         }
 
         // 가입한 유저가 학생일 경우 설문조사 페이지 이동
-        composable(route = "survey?id={id}&password={password}&email={email}&name={name}&role={role}",
+        composable(
+            route = "survey?id={id}&password={password}&email={email}&name={name}&role={role}",
             arguments = listOf(navArgument("id") { type = NavType.StringType },
                 navArgument("password") { type = NavType.StringType },
                 navArgument("email") { type = NavType.StringType },
                 navArgument("name") { type = NavType.StringType },
-                navArgument("role") { type = NavType.IntType })) { backStackEntry ->
+                navArgument("role") { type = NavType.IntType })
+        ) { backStackEntry ->
             val idArg = backStackEntry.arguments?.getString("id") ?: ""
             val passwordArg = backStackEntry.arguments?.getString("password") ?: ""
             val emailArg = backStackEntry.arguments?.getString("email") ?: ""
