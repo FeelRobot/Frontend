@@ -5,15 +5,20 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.project.feelrobot.model.dto.sign.LoginRequestDto
 import com.project.feelrobot.model.dto.sign.MailDto
 import com.project.feelrobot.model.dto.sign.RegisterDto
 import com.project.feelrobot.model.dto.user.SurveyResponseDto
 import com.project.feelrobot.network.RetrofitInstance
+import com.project.feelrobot.storage.JwtTokenManager
 import kotlinx.coroutines.launch
 
 class SignupViewModel : ViewModel() {
     fun registerUser(
-        registerDto: RegisterDto, context: Context, onSuccess: () -> Unit
+        registerDto: RegisterDto,
+        context: Context,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit = {}
     ) {
         viewModelScope.launch {
             try {
@@ -23,7 +28,12 @@ class SignupViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     Log.d("SignupViewModel", "회원가입 성공: ${response.body()}")
                     Toast.makeText(context, "회원가입 성공!", Toast.LENGTH_SHORT).show()
-                    onSuccess() // 회원가입 성공 시, 후속 액션
+
+                    loginAfterRegister(registerDto.id, registerDto.password, context, onSuccess = {
+                        onSuccess() // 최종 가입+로그인 성공
+                    }, onFailure = {
+                        onFailure("로그인 실패: $it")
+                    })
                 } else {
                     val errorMessage = response.errorBody()?.string() ?: "회원가입 실패"
                     Log.e("SignupViewModel", "회원가입 실패: $errorMessage") // 에러 로그 추가
@@ -36,8 +46,40 @@ class SignupViewModel : ViewModel() {
         }
     }
 
+    // 회원가입 직후 일반 로그인용 함수
+    private fun loginAfterRegister(
+        id: String,
+        password: String,
+        context: Context,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.getApi(context).login(LoginRequestDto(id, password))
+                if (response.isSuccessful) {
+                    response.body()?.let { loginResp ->
+                        // 토큰 저장하여 로그인
+                        JwtTokenManager(context).apply {
+                            saveTokens(loginResp.accessToken, loginResp.refreshToken)
+                            setAutoLogin(false) // 혹은 true
+                        }
+                        Log.d("SignupViewModel", "로그인 성공")
+                        onSuccess()
+                    } ?: run {
+                        onFailure("로그인 응답이 비어있습니다.")
+                    }
+                } else {
+                    onFailure(response.errorBody()?.string() ?: "로그인 실패")
+                }
+            } catch (e: Exception) {
+                onFailure("loginAfterRegister 오류: ${e.message}")
+            }
+        }
+    }
+
     fun submitSurvey(
-        surveyResponseDto: SurveyResponseDto, context: Context, onSuccess: () -> Unit
+        surveyResponseDto: SurveyResponseDto, context: Context
     ) {
         viewModelScope.launch {
             try {
@@ -45,7 +87,6 @@ class SignupViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     Log.d("SignupViewModel", "설문조사 제출 성공: ${response.body()}")
                     Toast.makeText(context, "설문조사 제출 성공!", Toast.LENGTH_SHORT).show()
-                    onSuccess() // 설문조사 제출 성공 시, 후속 액션
                 } else {
                     val errorMessage = response.errorBody()?.string() ?: "설문조사 제출 실패"
                     Log.e("SignupViewModel", "설문조사 제출 실패: $errorMessage") // 에러 로그 추가
@@ -64,12 +105,12 @@ class SignupViewModel : ViewModel() {
             try {
                 val response = RetrofitInstance.getApi(context).checkIdDuplication(id)
                 if (response.isSuccessful) {
-                    // 성공일 경우: "아이디 사용 가능"
+                    // 성공
                     Toast.makeText(context, response.body() ?: "아이디 사용 가능", Toast.LENGTH_SHORT)
                         .show()
                     onResult(true)
                 } else {
-                    // 실패일 경우: "이미 존재하는 아이디입니다." 등
+                    // 실패
                     val errorMsg = response.errorBody()?.string() ?: "아이디 중복 확인 실패"
                     Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
                     onResult(false)
@@ -81,7 +122,6 @@ class SignupViewModel : ViewModel() {
             }
         }
     }
-
 
     // 이메일 인증번호 전송
     fun sendEmailAuth(email: String, context: Context, onResult: (Boolean) -> Unit) {
@@ -105,7 +145,6 @@ class SignupViewModel : ViewModel() {
             }
         }
     }
-
 
     // 이메일 인증번호 검증
     fun verifyEmailAuth(
@@ -139,6 +178,4 @@ class SignupViewModel : ViewModel() {
             }
         }
     }
-
-
 }
