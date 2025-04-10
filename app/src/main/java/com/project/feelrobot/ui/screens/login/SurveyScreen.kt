@@ -113,19 +113,17 @@ fun SurveyScreen(
                         val surveyResponseDto =
                             SurveyResponseDto(registerDto.id, birth, sex, managerId)
 
-                        signupViewModel.registerUser(
-                            registerDto, context
-                        ) {
+                        signupViewModel.registerUser(registerDto, context, onSuccess = {
+                            // 최종 가입 + 로그인 성공 -> 홈 이동
+                            signupViewModel.submitSurvey(surveyResponseDto, context)
 
-                            signupViewModel.submitSurvey(surveyResponseDto, context, onSuccess = {
-                                // 성공 시 화면 이동
-                                navController.navigate("home") {
-                                    popUpTo("survey") {
-                                        inclusive = true
-                                    }
-                                }
-                            })
-                        }
+                            navController.navigate("home") {
+                                popUpTo("survey") { inclusive = true }
+                            }
+                        }, onFailure = { errMsg ->
+                            Toast.makeText(context, errMsg, Toast.LENGTH_SHORT).show()
+                        })
+
                         Log.d(
                             "SurveyScreen",
                             "id: ${registerDto.id} | email: ${registerDto.email} | name: ${registerDto.name} | role: ${registerDto.role}"
@@ -239,8 +237,7 @@ fun SurveyForm(
                 Log.d("SurveyForm", "Selected sex: $value")
             })
 
-        TextFieldRow(
-            label = "보호자 아이디",
+        TextFieldRow(label = "보호자 아이디",
             value = managerId,
             placeholder = "보호자 아이디를 입력하세요.",
             onValueChange = {
