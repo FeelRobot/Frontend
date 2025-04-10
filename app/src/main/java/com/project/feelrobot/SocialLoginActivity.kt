@@ -5,15 +5,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.compose.rememberNavController
 import com.project.feelrobot.storage.JwtTokenManager
-import com.project.feelrobot.ui.screens.login.LoginScreen
-import com.project.feelrobot.ui.theme.FeelRobotTheme
 import kotlinx.coroutines.launch
 
 class SocialLoginActivity : ComponentActivity() {
@@ -27,12 +23,6 @@ class SocialLoginActivity : ComponentActivity() {
 
         // 딥링크 인텐트를 먼저 처리하여 인가 코드를 deepLinkCode에 저장
         handleDeepLink(intent)
-        setContent {
-            FeelRobotTheme {
-                val navController = rememberNavController()
-                LoginScreen(navController = navController)
-            }
-        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -67,8 +57,7 @@ class SocialLoginActivity : ComponentActivity() {
                                 setAutoLogin(true)
                             }
                             startActivity(Intent(
-                                this@SocialLoginActivity,
-                                MainActivity::class.java
+                                this@SocialLoginActivity, MainActivity::class.java
                             ).apply {
                                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
                             })
