@@ -1,6 +1,7 @@
 package com.project.feelrobot.ui.screens.login
 
 //noinspection UsingMaterialAndMaterial3Libraries
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -62,9 +63,10 @@ fun SignupScreen(
 
     val isSocialLogin = initialEmail.isNotEmpty() // 소셜로그인 여부
 
-    // 소셜 로그인 시 이메일 고정, 비밀번호 랜덤 문자열 설정
+    // 소셜 로그인 시 id, email 고정, 비밀번호 랜덤 문자열 설정
     LaunchedEffect(Unit) {
         if (isSocialLogin) {
+            id = initialEmail
             email = initialEmail
             password = "******"
             confirmPassword = "******"
@@ -191,16 +193,21 @@ fun SignupForm(
     var idCheckDone by remember { mutableStateOf(false) } // 아이디 중복 체크 수행 여부
     var emailVerifyDone by remember { mutableStateOf(false) } // 이메일 인증 수행 여부
     var isEmailVerified by remember { mutableStateOf(false) } // 인증 성공 여부
+    var isNameEmpty by remember { mutableStateOf(true) } // 이름 입력 여부
 
     val context = LocalContext.current
 
-    // 소셜로그인 시 passwordError = false, isEmailVerified = true 로 고정
+    // 소셜로그인 시 isIdDuplicated = false, passwordError = false, isEmailVerified = true 로 고정
     LaunchedEffect(isSocialLogin) {
         if (isSocialLogin) {
-            isEmailVerified = true
-            passwordError = false
+            idCheckDone = true
             checkSignPossible(
-                isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+                true,
+                isIdDuplicated = false,
+                isNameEmpty,
+                passwordError = false,
+                isEmailVerified = true,
+                onSignPossibleChange
             )
         }
     }
@@ -211,7 +218,8 @@ fun SignupForm(
             value = id,
             placeholder = "아이디를 입력하세요.",
             onValueChange = onIdChange,
-            buttonText = "중복 확인",
+            modifiable = !isSocialLogin,
+            buttonText = if (!isSocialLogin) "중복 확인" else null,
             onButtonClick = {
                 signupViewModel.checkIdDuplication(id, context) { success ->
                     idCheckDone = true
@@ -219,11 +227,16 @@ fun SignupForm(
 
                     // 바뀐 상태에 따라 가입 가능 여부 재계산
                     checkSignPossible(
-                        isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+                        isSocialLogin,
+                        isIdDuplicated,
+                        isNameEmpty,
+                        passwordError,
+                        isEmailVerified,
+                        onSignPossibleChange
                     )
                 }
             })
-        if (idCheckDone && isIdDuplicated) {
+        if (idCheckDone && isIdDuplicated && !isSocialLogin) {
             Text(
                 text = "이미 사용 중인 아이디입니다.",
                 fontSize = 14.sp,
@@ -232,11 +245,20 @@ fun SignupForm(
             )
         }
 
-
         // 2. 이름
-        TextFieldRow(
-            label = "이름", value = name, placeholder = "이름을 입력하세요.", onValueChange = onNameChange
-        )
+        TextFieldRow(label = "이름", value = name, placeholder = "이름을 입력하세요.", onValueChange = {
+            onNameChange(it)
+            isNameEmpty = it.isBlank()
+            // 바뀐 상태에 따라 가입 가능 여부 재계산
+            checkSignPossible(
+                isSocialLogin,
+                isIdDuplicated,
+                isNameEmpty,
+                passwordError,
+                isEmailVerified,
+                onSignPossibleChange
+            )
+        })
 
         // 3. 비밀번호 입력/재입력
         if (!isSocialLogin) {
@@ -255,7 +277,12 @@ fun SignupForm(
                     onConfirmPasswordChange(it)
                     passwordError = it.isNotEmpty() && (password != it) // 비밀번호 불일치 시 에러 상태 업데이트
                     checkSignPossible(
-                        isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+                        false,
+                        isIdDuplicated,
+                        isNameEmpty,
+                        passwordError,
+                        isEmailVerified,
+                        onSignPossibleChange
                     )
                 },
                 isPassword = true,
@@ -303,7 +330,12 @@ fun SignupForm(
                     ) { verified ->
                         isEmailVerified = verified
                         checkSignPossible(
-                            isIdDuplicated, passwordError, isEmailVerified, onSignPossibleChange
+                            false,
+                            isIdDuplicated,
+                            isNameEmpty,
+                            passwordError,
+                            isEmailVerified,
+                            onSignPossibleChange
                         )
                     }
                 })
@@ -323,9 +355,7 @@ fun SignupForm(
                     modifier = Modifier.padding(start = 8.dp, top = 4.dp)
                 )
             }
-
         }
-
     }
 }
 
@@ -359,11 +389,25 @@ fun UserTypeSelector(selectedUserType: Int, onUserTypeSelected: (Int) -> Unit) {
 
 // 아이디 중복, 비밀번호 확인, 이메일 인증을 통해 가입 가능여부를 판단하기 위해 isSignPossible 변경
 private fun checkSignPossible(
+    isSocialLogin: Boolean,
     isIdDuplicated: Boolean,
+    isNameEmpty: Boolean,
     passwordError: Boolean,
     isEmailVerified: Boolean,
     onSignPossibleChange: (Boolean) -> Unit
 ) {
-    val canSign = !isIdDuplicated && !passwordError && isEmailVerified
+    Log.d(
+        "SignupScreen",
+        "isIdDuplicated: $isIdDuplicated, isNameEmpty: $isNameEmpty, passwordError: $passwordError, isEmailVerified: $isEmailVerified"
+    )
+
+    val canSign: Boolean = if (isSocialLogin) {
+        !isNameEmpty
+
+    } else {
+        !isIdDuplicated && !isNameEmpty && !passwordError && isEmailVerified
+    }
     onSignPossibleChange(canSign)
+    Log.d("SignupScreen", "canSign: $canSign")
+
 }
