@@ -37,6 +37,7 @@ object RetrofitInstance {
         if (retrofit == null) {
             val client = OkHttpClient.Builder()
                 .addInterceptor(JwtInterceptor(context)) // JwtInterceptor 추가
+                .authenticator(TokenAuthenticator(context)) // Authenticator 추가
                 .build()
 
             retrofit = Retrofit.Builder()
