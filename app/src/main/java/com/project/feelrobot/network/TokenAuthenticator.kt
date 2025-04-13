@@ -13,34 +13,43 @@ import okhttp3.Route
 
 class TokenAuthenticator(private val context: Context) : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
-        // 무한 재시도 방지
-        if (responseCount(response) >= 3) {
-            return null
-        }
-        // 저장된 리프레시 토큰 가져오기
-        val refreshToken = runBlocking { JwtTokenManager(context).refreshTokenFlow.first() } ?: return null
+        if (responseCount(response) >= 3) return null
+
+        val refreshToken = runBlocking {
+            JwtTokenManager(context).refreshTokenFlow.first()
+        } ?: return null
 
         return runBlocking {
             try {
+                // Refresh API 호출
                 val refreshResponse = RetrofitInstance.getApi(context).refreshToken(RefreshDto(refreshToken))
+
                 if (refreshResponse.isSuccessful) {
-                    val newAccessToken = refreshResponse.body()?.accessToken
-                    if (newAccessToken != null) {
+                    // 정상 응답 (HTTP 200)
+                    val newAccessToken = refreshResponse.body() ?: ""
+                    if (newAccessToken.isNotEmpty()) {
                         // 새 토큰 저장
                         JwtTokenManager(context).saveTokens(newAccessToken, refreshToken)
-                        // Authorization 헤더에 새로운 토큰 추가하여 원래 요청 재시도
+                        Log.d("TokenAuthenticator", "token refresh 완료")
+                        // 원래 요청 재시도
                         response.request.newBuilder()
-                            .header("Authorization", "Bearer $newAccessToken")
+                            .header("Authorization", newAccessToken)
                             .build()
                     } else {
+                        // body()가 null
                         Log.e("TokenAuthenticator", "새로운 access token이 null입니다.")
                         null
                     }
                 } else {
-                    Log.e("TokenAuthenticator", "토큰 리프레시 실패: HTTP ${refreshResponse.code()}")
+                    // 에러 응답
+                    val statusCode = refreshResponse.code()
+                    val errorBodyStr = refreshResponse.errorBody()?.string() ?: "Unknown error"
+                    Log.e("TokenAuthenticator", "토큰 리프레시 실패: $statusCode / $errorBodyStr")
                     null
                 }
+
             } catch (e: Exception) {
+                // MalformedJsonException 등 발생
                 Log.e("TokenAuthenticator", "토큰 리프레시 중 예외 발생: ${e.message}", e)
                 null
             }
@@ -49,10 +58,10 @@ class TokenAuthenticator(private val context: Context) : Authenticator {
 
     private fun responseCount(response: Response): Int {
         var result = 1
-        var priorResponse = response.priorResponse
-        while (priorResponse != null) {
+        var prior = response.priorResponse
+        while (prior != null) {
             result++
-            priorResponse = priorResponse.priorResponse
+            prior = prior.priorResponse
         }
         return result
     }
