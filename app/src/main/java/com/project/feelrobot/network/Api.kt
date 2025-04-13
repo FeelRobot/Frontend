@@ -24,7 +24,7 @@ interface Api {
     suspend fun logout(@Body logoutRequest: LogoutRequestDto): Response<String>
 
     @POST("sign/refresh")
-    suspend fun refreshToken(@Body refreshDto: RefreshDto): Response<LoginResponseDto>
+    suspend fun refreshToken(@Body refreshDto: RefreshDto): Response<String>
 
     @GET("sign/check/{id}")
     suspend fun checkIdDuplication(@Path("id") id: String): Response<String>
