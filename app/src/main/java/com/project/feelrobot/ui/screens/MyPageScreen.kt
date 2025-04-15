@@ -92,6 +92,7 @@ fun MyPageScreen(
     }
 }
 
+
 @Composable
 fun MyPageContent(role: String, infoItems: List<Pair<String, String>>) {
     Column(

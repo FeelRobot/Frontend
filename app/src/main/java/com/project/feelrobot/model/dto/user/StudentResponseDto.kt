@@ -6,5 +6,6 @@ data class StudentResponseDto(
     val name: String,
     val birth: String,
     val sex: Int,
-    val managerId: String
+    val managerId: String,
+    val role: Int
 )

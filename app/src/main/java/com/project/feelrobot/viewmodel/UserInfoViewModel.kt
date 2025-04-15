@@ -37,20 +37,30 @@ class UserInfoViewModel(private val appContext: Context) : ViewModel() {
                     val gson = Gson()
                     val jsonStr = gson.toJson(response.body())  // Any → JSON
                     val asJsonObj = gson.fromJson(jsonStr, JsonObject::class.java)
+                    when (val role = asJsonObj.get("role").asInt) {
+                        0 -> {
+                            // 학생 DTO
+                            val student = gson.fromJson(jsonStr, StudentResponseDto::class.java)
+                            _userInfoState.value = UserInfoState.Student(student)
+                        }
 
-                    if (asJsonObj.has("birth")) {
-                        // => 학생 DTO
-                        val student = gson.fromJson(jsonStr, StudentResponseDto::class.java)
-                        _userInfoState.value = UserInfoState.Student(student)
-                    } else {
-                        // => 보호자 DTO
-                        val manager = gson.fromJson(jsonStr, ManagerResponseDto::class.java)
-                        _userInfoState.value = UserInfoState.Manager(manager)
+                        1 -> {
+                            // 보호자 DTO
+                            val manager = gson.fromJson(jsonStr, ManagerResponseDto::class.java)
+                            _userInfoState.value = UserInfoState.Manager(manager)
+                        }
+
+                        else -> {
+                            _userInfoState.value = UserInfoState.Error("알 수 없는 role 값: $role")
+                        }
                     }
                 } else {
                     val statusCode = response.code()
-                    val errMsg = response.errorBody()?.string()?.ifEmpty { "HTTP $statusCode" } ?: "userInfo API error"
-                    Log.e("UserInfoViewModel", "API 응답 실패: statusCode=$statusCode, errorBody=$errMsg")
+                    val errMsg = response.errorBody()?.string()?.ifEmpty { "HTTP $statusCode" }
+                        ?: "userInfo API error"
+                    Log.e(
+                        "UserInfoViewModel", "API 응답 실패: statusCode=$statusCode, errorBody=$errMsg"
+                    )
 
                     _userInfoState.value = UserInfoState.Error(errMsg)
                 }
