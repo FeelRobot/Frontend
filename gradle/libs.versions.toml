@@ -19,6 +19,7 @@ v2User = "2.21.0"
 volley = "1.2.1"
 toolsCore = "1.0.0-alpha12"
 browser = "1.8.0"
+runtimeLivedata = "1.7.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,6 +48,7 @@ v2-user = { module = "com.kakao.sdk:v2-user", version.ref = "v2User" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 androidx-tools-core = { group = "androidx.privacysandbox.tools", name = "tools-core", version.ref = "toolsCore" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
