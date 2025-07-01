@@ -13,9 +13,14 @@ import com.project.feelrobot.model.dto.sign.RegisterDto
 import com.project.feelrobot.ui.screens.ChatScreen
 import com.project.feelrobot.ui.screens.HomeScreen
 import com.project.feelrobot.ui.screens.MyPageScreen
+import com.project.feelrobot.ui.screens.updateInfo.UpdateInfoScreen
+import com.project.feelrobot.ui.screens.findInfo.FindIdConfirmScreen
+import com.project.feelrobot.ui.screens.findInfo.FindIdScreen
+import com.project.feelrobot.ui.screens.findInfo.ResetPasswordScreen
 import com.project.feelrobot.ui.screens.login.LoginScreen
 import com.project.feelrobot.ui.screens.login.SignupScreen
 import com.project.feelrobot.ui.screens.login.SurveyScreen
+import com.project.feelrobot.ui.screens.updateInfo.ChangeEmailScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -24,11 +29,29 @@ fun NavGraph(
     navController: NavHostController
 ) {
     NavHost(
-        navController = navController, startDestination = "home"
+        navController = navController, startDestination = "login"
     ) {
-        composable("home") { HomeScreen() }
-        composable("myPage") { MyPageScreen() }
+        composable("home") { HomeScreen(navController) }
+        composable("myPage") { MyPageScreen(navController) }
         composable("chat") { ChatScreen() }
+
+        // 아이디 찾기 화면
+        composable("findId") { FindIdScreen(navController) }
+        // 아이디 확인 화면 (Path parameter 사용)
+        composable("findIdConfirm/{email}", arguments = listOf(navArgument("email") {
+            type = NavType.StringType
+        })) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email")!!
+            FindIdConfirmScreen(email)
+        }
+
+        // 비밀번호 재설정 페이지
+        composable("resetPassword") { ResetPasswordScreen(navController) }
+
+        // 계정 정보 수정 페이지
+        composable("updateInfo") { UpdateInfoScreen(navController) }
+        composable("changePassword") { ResetPasswordScreen(navController) }
+        composable("changeEmail") { ChangeEmailScreen(navController) }
 
         // 로그인 관련 페이지
         composable("login") { LoginScreen(navController) }
@@ -59,7 +82,6 @@ fun NavGraph(
             val nameArg = backStackEntry.arguments?.getString("name") ?: ""
             val roleArg = backStackEntry.arguments?.getInt("role") ?: 0
 
-            // 다시 RegisterDto로 만들 수 있음
             val registerDto = RegisterDto(idArg, passwordArg, emailArg, nameArg, roleArg)
 
             SurveyScreen(navController, registerDto)

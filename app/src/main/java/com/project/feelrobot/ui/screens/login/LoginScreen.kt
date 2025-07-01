@@ -173,7 +173,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = v
                     fontSize = 14.sp,
                     color = Color.White,
                     modifier = Modifier
-                        .clickable { navController.navigate("findPassword") }
+                        .clickable { navController.navigate("resetPassword") }
                         .padding(horizontal = 8.dp))
 
                 Text(text = "|", fontSize = 14.sp, color = Color.White)

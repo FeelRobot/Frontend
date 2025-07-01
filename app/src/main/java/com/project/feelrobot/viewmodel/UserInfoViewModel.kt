@@ -6,6 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.project.feelrobot.model.dto.ErrorDto
+import com.project.feelrobot.model.dto.ResponseDto
+import com.project.feelrobot.model.dto.user.CheckPasswordDto
 import com.project.feelrobot.model.dto.user.ManagerResponseDto
 import com.project.feelrobot.model.dto.user.StudentResponseDto
 import com.project.feelrobot.network.RetrofitInstance
@@ -21,11 +24,20 @@ sealed class UserInfoState {
     data class Error(val message: String) : UserInfoState()
 }
 
+sealed class PasswordCheckState {
+    object Idle : PasswordCheckState()
+    object Loading : PasswordCheckState()
+    object Success : PasswordCheckState()
+    data class Error(val message: String) : PasswordCheckState()
+}
+
 // ViewModel
 class UserInfoViewModel(private val appContext: Context) : ViewModel() {
-
     private val _userInfoState = MutableStateFlow<UserInfoState>(UserInfoState.Loading)
     val userInfoState = _userInfoState.asStateFlow()
+
+    private val _passwordState = MutableStateFlow<PasswordCheckState>(PasswordCheckState.Idle)
+    val passwordState = _passwordState.asStateFlow()
 
     fun fetchUserInfo() {
         viewModelScope.launch {
@@ -67,6 +79,29 @@ class UserInfoViewModel(private val appContext: Context) : ViewModel() {
             } catch (e: Exception) {
                 Log.e("UserInfoViewModel", "예외 발생: ${e.message}", e)
                 _userInfoState.value = UserInfoState.Error(e.message ?: "unknown error")
+            }
+        }
+    }
+
+    fun checkPassword(password: String) {
+        viewModelScope.launch {
+            _passwordState.value = PasswordCheckState.Loading
+            try {
+                val res = RetrofitInstance.getApi(appContext)
+                    .checkPassword(CheckPasswordDto(password)) // Response<ResponseDto<String>>
+                if (res.isSuccessful) {
+                    // body.data를 로그로 확인하거나 무시
+                    val wrapper: ResponseDto<String> = res.body()!!
+                    Log.d("UserInfoVM", "checkPassword success: ${wrapper.data}")
+                    _passwordState.value = PasswordCheckState.Success
+                } else {
+                    val err = Gson().fromJson(res.errorBody()!!.charStream(), ErrorDto::class.java)
+                    Log.e("UserInfoVM", "checkPassword failed: ${err.errorMessage}")
+                    _passwordState.value = PasswordCheckState.Error(err.errorMessage)
+                }
+            } catch (e: Exception) {
+                Log.e("UserInfoVM", "checkPassword exception", e)
+                _passwordState.value = PasswordCheckState.Error(e.message ?: "네트워크 오류")
             }
         }
     }

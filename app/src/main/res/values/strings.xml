@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">FeelRobot</string>
+    <string name="kakao_native_app_key">6adbdeb04e7592bbeb47c4c2f3da6904</string>
+    <string name="kakao_scheme">kakao6adbdeb04e7592bbeb47c4c2f3da6904</string>
+    <string name="kakao_client_id">43f54ab29c4ab5cdef87f4235ba4f8b1</string>
+    <string name="kakao_client_secret">af2xVq7xfqh8rdrpVUBVzZ85OCtspCNb secret</string>
+    <string name="kakao_redirect_uri">http://13.209.24.99:8080/sign/kakao/callback</string>
 </resources>

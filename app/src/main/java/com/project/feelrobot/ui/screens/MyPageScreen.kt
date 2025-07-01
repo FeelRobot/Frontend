@@ -30,12 +30,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.project.feelrobot.viewmodel.UserInfoState
 import com.project.feelrobot.viewmodel.UserInfoViewModel
 import com.project.feelrobot.viewmodel.UserInfoViewModelFactory
 
 @Composable
 fun MyPageScreen(
+    navController: NavController
 ) {
     val context = LocalContext.current
     val userInfoViewModel: UserInfoViewModel = viewModel(
@@ -66,7 +68,7 @@ fun MyPageScreen(
         is UserInfoState.Student -> {
             val data = (uiState as UserInfoState.Student).data
             MyPageContent(
-                role = "학생", infoItems = listOf(
+                navController, role = "학생", infoItems = listOf(
                     "아이디" to data.userId,
                     "생년월일" to data.birth,
                     "이메일" to data.email,
@@ -81,7 +83,7 @@ fun MyPageScreen(
         is UserInfoState.Manager -> {
             val data = (uiState as UserInfoState.Manager).data
             MyPageContent(
-                role = "보호자", infoItems = listOf(
+                navController, role = "보호자", infoItems = listOf(
                     "아이디" to data.userId,
                     "이메일" to data.email,
                     "이름" to data.name,
@@ -94,7 +96,11 @@ fun MyPageScreen(
 
 
 @Composable
-fun MyPageContent(role: String, infoItems: List<Pair<String, String>>) {
+fun MyPageContent(
+    navController: NavController,
+    role: String,
+    infoItems: List<Pair<String, String>>
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -141,7 +147,7 @@ fun MyPageContent(role: String, infoItems: List<Pair<String, String>>) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { /* TODO: 정보 수정 로직 */ },
+            onClick = { navController.navigate("updateInfo") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
